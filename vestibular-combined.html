@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vestibular Assessment — Data Entry &amp; Report</title>
+<style>
+/* ── PASSWORD GATE ── */
+#pwGate{position:fixed;inset:0;background:var(--teal-900,#04342C);display:flex;align-items:center;justify-content:center;z-index:9999;}
+#pwGate.hidden{display:none;}
+.pw-box{background:#fff;border-radius:12px;padding:40px 36px;width:320px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.pw-logo{width:48px;height:48px;background:#0F6E56;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;color:#E1F5EE;margin:0 auto 16px;}
+.pw-title{font-size:17px;font-weight:bold;color:#04342C;margin-bottom:4px;font-family:Georgia,serif;}
+.pw-sub{font-size:12px;color:#888780;margin-bottom:24px;font-family:Arial,sans-serif;}
+.pw-input{width:100%;border:1px solid #c0bdb3;border-radius:6px;padding:10px 12px;font-size:14px;font-family:Arial,sans-serif;outline:none;margin-bottom:12px;text-align:center;letter-spacing:2px;}
+.pw-input:focus{border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,0.12);}
+.pw-btn{width:100%;padding:11px;background:#04342C;color:#E1F5EE;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;transition:background 0.15s;}
+.pw-btn:hover{background:#0F6E56;}
+.pw-err{color:#A32D2D;font-size:12px;font-family:Arial,sans-serif;margin-top:8px;min-height:16px;}
+</style>
+:root {
+  --teal-50:#E1F5EE;--teal-100:#9FE1CB;--teal-400:#1D9E75;--teal-600:#0F6E56;--teal-800:#085041;--teal-900:#04342C;
+  --gray-50:#F1EFE8;--gray-100:#D3D1C7;--gray-200:#B4B2A9;--gray-400:#888780;--gray-600:#5F5E5A;--gray-800:#444441;--gray-900:#2C2C2A;
+  --bg:#f5f4f0;--surface:#ffffff;--border:#dddbd2;--border-strong:#c0bdb3;
+  --text:#2C2C2A;--text-muted:#5F5E5A;--text-hint:#888780;
+  --accent:#0F6E56;--accent-light:#E1F5EE;--accent-mid:#1D9E75;
+  --r:8px;--rs:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+
+/* ── HEADER ── */
+.hdr{background:var(--teal-900);color:#E1F5EE;padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.hdr-logo{width:30px;height:30px;background:var(--teal-600);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:15px;color:#E1F5EE;flex-shrink:0;}
+.hdr h1{font-size:15px;font-weight:bold;color:#E1F5EE;margin:0;}
+.hdr-sub{font-size:11px;color:var(--teal-100);margin-top:1px;}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.hdr input[type=text]{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:var(--rs);padding:5px 10px;color:#E1F5EE;font-size:12px;width:160px;}
+.hdr input::placeholder{color:rgba(225,245,238,0.5);}
+.hdr-btn{padding:6px 14px;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;border:none;transition:all 0.15s;}
+.btn-notes{background:var(--teal-600);color:#E1F5EE;}
+.btn-notes:hover{background:var(--teal-400);}
+.btn-report{background:#E1F5EE;color:var(--teal-900);}
+.btn-report:hover{background:#9FE1CB;}
+.btn-send{background:rgba(255,255,255,0.15);color:#E1F5EE;border:1px solid rgba(255,255,255,0.3)!important;}
+.btn-send:hover{background:rgba(255,255,255,0.25);}
+
+/* ── TAB BAR ── */
+.tabbar{background:var(--teal-800);display:flex;gap:2px;padding:0 20px;border-bottom:2px solid var(--teal-600);}
+.tabbar button{background:none;border:none;color:var(--teal-100);padding:9px 16px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;font-family:Arial,sans-serif;}
+.tabbar button:hover{color:#E1F5EE;}
+.tabbar button.active{color:#E1F5EE;border-bottom-color:#E1F5EE;font-weight:bold;}
+
+/* ── LAYOUT ── */
+.main{display:flex;min-height:calc(100vh - 86px);}
+.form-col{flex:1;overflow-y:auto;max-height:calc(100vh - 86px);padding:16px 20px;}
+.output-col{width:520px;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 86px);display:flex;flex-direction:column;}
+
+/* ── FORM SECTIONS ── */
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.fsec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.fsec-title{font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:var(--text-hint);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+label{font-size:11px;font-weight:bold;color:var(--text-muted);display:block;margin-bottom:3px;}
+input[type=text],input[type=date],input[type=number],input[type=password],textarea,select{width:100%;border:1px solid var(--border-strong);border-radius:var(--rs);padding:6px 8px;font-size:12px;font-family:Arial,sans-serif;color:var(--text);background:var(--surface);outline:none;transition:border-color 0.15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent-mid);box-shadow:0 0 0 2px rgba(29,158,117,0.12);}
+textarea{resize:vertical;line-height:1.4;}
+.frow{display:grid;gap:10px;margin-bottom:10px;}
+.frow:last-child{margin-bottom:0;}
+.fc2{grid-template-columns:1fr 1fr;}
+.fc3{grid-template-columns:1fr 1fr 1fr;}
+.fc4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.fld{display:flex;flex-direction:column;}
+
+/* vHIT canal block */
+.canal-block{background:var(--gray-50);border-radius:var(--rs);padding:10px 12px;margin-bottom:10px;}
+.canal-title{font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-hint);margin-bottom:8px;}
+.canal-sides{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.side-label{font-size:11px;font-weight:bold;color:var(--text);margin-bottom:6px;padding:3px 8px;border-radius:3px;display:inline-block;}
+.side-r{background:#FEF2F2;color:#991B1B;}
+.side-l{background:#EFF6FF;color:#1E40AF;}
+.saccade-sub{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);display:none;}
+.saccade-sub.show{display:block;}
+input.chk-sac{width:auto!important;margin-right:4px;}
+
+/* VNG */
+.vng-row{display:grid;grid-template-columns:90px 100px 1fr;gap:8px;align-items:start;margin-bottom:6px;}
+.vng-row label{padding-top:7px;font-size:11px;}
+
+/* POSITIONAL */
+.pos-row{display:grid;grid-template-columns:90px 140px 1fr;gap:8px;align-items:start;margin-bottom:6px;}
+
+/* ── OUTPUT PANEL ── */
+.output-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.output-tab{flex:1;padding:10px;font-size:12px;font-weight:bold;text-align:center;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;font-family:Arial,sans-serif;}
+.output-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.output-content{flex:1;overflow-y:auto;padding:16px;}
+.out-panel{display:none;}
+.out-panel.active{display:block;}
+
+/* ── NOTES PANEL ── */
+.notes-page{font-family:Arial,sans-serif;font-size:11px;line-height:1.4;color:var(--text);}
+.np-header{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--teal-600);}
+.np-pt-name{font-size:15px;font-weight:bold;color:var(--teal-900);grid-column:1/-1;}
+.np-meta{font-size:10px;color:var(--text-muted);}
+.np-section{margin-bottom:12px;}
+.np-sec-title{font-size:9px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal-600);border-bottom:1px solid var(--teal-100);padding-bottom:3px;margin-bottom:6px;}
+.np-table{width:100%;border-collapse:collapse;font-size:11px;}
+.np-table th{background:var(--teal-50);color:var(--teal-800);font-size:10px;font-weight:bold;padding:4px 6px;text-align:left;border:1px solid var(--teal-100);}
+.np-table td{padding:4px 6px;border:1px solid var(--border);vertical-align:top;}
+.np-table tr:nth-child(even) td{background:var(--gray-50);}
+.status-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:bold;}
+.badge-ok{background:#D1FAE5;color:#065F46;}
+.badge-warn{background:#FEF3C7;color:#92400E;}
+.badge-abn{background:#FEE2E2;color:#991B1B;}
+.badge-na{background:var(--gray-100);color:var(--gray-600);}
+.anatomy-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.anatomy-card{background:var(--gray-50);border:1px solid var(--border);border-radius:4px;padding:6px 8px;}
+.anatomy-card .organ{font-size:10px;font-weight:bold;color:var(--text-muted);margin-bottom:3px;}
+.anatomy-card .sides{display:flex;justify-content:space-between;}
+.anatomy-side{text-align:center;font-size:10px;}
+.anatomy-side .val{font-weight:bold;font-size:12px;}
+.side-tag-r{color:#991B1B;}
+.side-tag-l{color:#1E40AF;}
+.np-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.np-notes{background:var(--gray-50);border:1px solid var(--border);border-radius:4px;padding:8px;font-size:11px;color:var(--text-muted);min-height:40px;white-space:pre-wrap;}
+.print-btn{width:100%;padding:8px;background:var(--gray-50);border:1px solid var(--border);border-radius:var(--rs);font-size:12px;cursor:pointer;color:var(--text-muted);margin-bottom:12px;font-family:Arial,sans-serif;}
+.print-btn:hover{background:var(--border);}
+
+/* ── REPORT PANEL ── */
+.api-row{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
+.api-row input{flex:1;font-size:12px;}
+.api-hint{font-size:10px;color:var(--text-hint);margin-bottom:10px;}
+.api-hint a{color:var(--accent);}
+.gen-btn{width:100%;padding:10px;background:var(--teal-900);color:#E1F5EE;border:none;border-radius:var(--r);font-size:13px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:Arial,sans-serif;transition:background 0.15s;margin-bottom:12px;}
+.gen-btn:hover{background:var(--teal-800);}
+.gen-btn:disabled{background:var(--gray-200);color:var(--text-hint);cursor:not-allowed;}
+.spinner{width:14px;height:14px;border:2px solid rgba(225,245,238,0.3);border-top-color:#E1F5EE;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+.gen-btn.loading .spinner{display:block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.report-out{font-family:Georgia,serif;font-size:12px;line-height:1.8;white-space:pre-wrap;color:var(--text);min-height:200px;}
+.report-out .cursor{display:inline-block;width:2px;height:1em;background:var(--accent);vertical-align:text-bottom;animation:blink 1s step-end infinite;margin-left:1px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.copy-btn{padding:6px 12px;border:1px solid var(--border-strong);border-radius:var(--rs);background:var(--surface);color:var(--text-muted);font-size:11px;cursor:pointer;font-family:Arial,sans-serif;}
+.copy-btn:hover{background:var(--gray-50);}
+.err-box{background:#FEE2E2;border:1px solid #F09595;border-radius:var(--rs);padding:8px 12px;color:#991B1B;font-size:12px;margin-bottom:10px;}
+.empty-hint{color:var(--text-hint);font-size:12px;text-align:center;padding:40px 20px;}
+
+@media print{
+  .hdr,.tabbar,.form-col,.output-tabs,.gen-btn,.copy-btn,.print-btn,.api-row,.api-hint{display:none!important;}
+  .main{display:block;}
+  .output-col{width:100%;border:none;max-height:none;}
+  .output-content{padding:0;}
+  .out-panel{display:block!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="pwGate">
+  <div class="pw-box">
+    <div class="pw-logo">V</div>
+    <div class="pw-title">Vestibular Assessment</div>
+    <div class="pw-sub">Dizziness Clinic — Auckland</div>
+    <input class="pw-input" type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">Enter</button>
+    <div class="pw-err" id="pwErr"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">V</div>
+  <div>
+    <div class="h1" style="font-size:15px;font-weight:bold;color:#E1F5EE;">Vestibular Assessment</div>
+    <div class="hdr-sub">Dizziness Clinic — Auckland</div>
+  </div>
+  <div class="hdr-right">
+    <input type="text" id="clinician" placeholder="Clinician ID">
+    <button class="hdr-btn btn-notes" onclick="switchOutput('notes')">📋 Preview Notes</button>
+    <button class="hdr-btn btn-report" onclick="switchOutput('report')">✉ Generate Report</button>
+    <button class="hdr-btn btn-send" onclick="sendToSheets()">↑ Save to Sheets</button>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <button class="active" onclick="openTab(event,'tPatient')">Patient</button>
+  <button onclick="openTab(event,'tPrechecks')">Prechecks</button>
+  <button onclick="openTab(event,'tVHIT')">vHIT</button>
+  <button onclick="openTab(event,'tVEMPs')">VEMPs</button>
+  <button onclick="openTab(event,'tVNG')">VNG</button>
+</div>
+
+<div class="main">
+<!-- ═══════════════════ FORM COLUMN ═══════════════════ -->
+<div class="form-col">
+
+<!-- PATIENT TAB -->
+<div id="tPatient" class="tab-panel active">
+  <div class="fsec">
+    <div class="fsec-title">Patient Details</div>
+    <div class="frow fc2">
+      <div class="fld"><label>First name</label><input type="text" id="fname" placeholder="First" oninput="updatePreview()"></div>
+      <div class="fld"><label>Last name</label><input type="text" id="lname" placeholder="Last" oninput="updatePreview()"></div>
+    </div>
+    <div class="frow fc3">
+      <div class="fld"><label>Date of birth</label><input type="date" id="dob" oninput="updatePreview()"></div>
+      <div class="fld"><label>NHI</label><input type="text" id="nhi" placeholder="ABC1234" oninput="updatePreview()"></div>
+      <div class="fld"><label>Pronoun</label>
+        <select id="pronoun" onchange="updatePreview()">
+          <option value="they/them">they/them</option>
+          <option value="she/her">she/her</option>
+          <option value="he/him">he/him</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow fc2">
+      <div class="fld"><label>Date of assessment</label><input type="date" id="assessDate" oninput="updatePreview()"></div>
+      <div class="fld"><label>Referrer</label><input type="text" id="refName" placeholder="Dr A. Patel" oninput="updatePreview()"></div>
+    </div>
+    <div class="frow fc2">
+      <div class="fld"><label>Referrer practice</label><input type="text" id="refPractice" placeholder="North Shore Medical" oninput="updatePreview()"></div>
+      <div class="fld"><label>Referral reason</label><input type="text" id="refReason" placeholder="e.g. dizziness and imbalance" oninput="updatePreview()"></div>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Heidi SOAP Note <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:10px;font-weight:bold;letter-spacing:0;">paste here</span></div>
+    <div class="fld"><label>Paste full Heidi SOAP output — history, assessment &amp; plan will be extracted automatically</label>
+      <textarea id="heidiNote" rows="10" placeholder="Paste the complete Heidi structured note here..." oninput="updatePreview()"></textarea>
+    </div>
+  </div>
+
+  <div class="fsec">
+    <div class="fsec-title">Session Notes</div>
+    <div class="fld"><textarea id="sessionNotes" rows="5" placeholder="General session notes, patient tags, clinical observations..." oninput="updatePreview()"></textarea></div>
+  </div>
+</div>
+
+<!-- PRECHECKS TAB -->
+<div id="tPrechecks" class="tab-panel">
+  <div class="fsec">
+    <div class="fsec-title">Pre-Assessment Checks</div>
+    <div class="frow fc3">
+      <div class="fld"><label>Eye exam</label><textarea id="eyeexam" rows="2" placeholder="NAD" oninput="updatePreview()"></textarea></div>
+      <div class="fld"><label>Otoscopy</label><textarea id="otoscopy" rows="2" placeholder="NAD bilaterally" oninput="updatePreview()"></textarea></div>
+      <div class="fld"><label>Audiometry</label><textarea id="audiometry" rows="2" placeholder="WNL" oninput="updatePreview()"></textarea></div>
+    </div>
+  </div>
+  <div class="fsec">
+    <div class="fsec-title">Tympanometry</div>
+    <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;align-items:end;margin-bottom:6px;">
+      <div style="font-size:11px;font-weight:bold;color:var(--text-muted);">Ear</div>
+      <div><label>Type</label></div><div><label>MEP (daPa)</label></div><div><label>Peak (mho)</label></div><div><label>Vol (ml)</label></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;margin-bottom:6px;">
+      <div style="font-size:11px;font-weight:bold;color:#991B1B;padding-top:7px;">RIGHT</div>
+      <input type="text" id="rTympType" placeholder="A" oninput="updatePreview()">
+      <input type="number" id="rTympMEP" placeholder="daPa" oninput="updatePreview()">
+      <input type="number" step="any" id="rTympAdm" placeholder="mho" oninput="updatePreview()">
+      <input type="number" step="any" id="rTympVol" placeholder="ml" oninput="updatePreview()">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;">
+      <div style="font-size:11px;font-weight:bold;color:#1E40AF;padding-top:7px;">LEFT</div>
+      <input type="text" id="lTympType" placeholder="A" oninput="updatePreview()">
+      <input type="number" id="lTympMEP" placeholder="daPa" oninput="updatePreview()">
+      <input type="number" step="any" id="lTympAdm" placeholder="mho" oninput="updatePreview()">
+      <input type="number" step="any" id="lTympVol" placeholder="ml" oninput="updatePreview()">
+    </div>
+  </div>
+  <div class="fsec">
+    <div class="fsec-title">Acoustic Reflexes</div>
+    <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;align-items:end;margin-bottom:4px;">
+      <div style="font-size:10px;font-weight:bold;">RC</div><div><label>.5k</label></div><div><label>1k</label></div><div><label>2k</label></div>
+      <div style="font-size:10px;font-weight:bold;">LC</div><div><label>.5k</label></div><div><label>1k</label></div><div><label>2k</label></div>
+    </div>
+    <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;margin-bottom:6px;">
+      <div style="font-size:10px;color:#991B1B;font-weight:bold;padding-top:7px;">R contra</div>
+      <input type="text" id="rARTc500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTc1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTc2000" placeholder="dB" oninput="updatePreview()">
+      <div style="font-size:10px;color:#1E40AF;font-weight:bold;padding-top:7px;">L contra</div>
+      <input type="text" id="lARTc500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="lARTc1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="lARTc2000" placeholder="dB" oninput="updatePreview()">
+    </div>
+    <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;">
+      <div style="font-size:10px;color:#991B1B;font-weight:bold;padding-top:7px;">R ipsi</div>
+      <input type="text" id="rARTi500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTi1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTi2000" placeholder="dB" oninput="updatePreview()">
+      <div style="font-size:10px;color:#1E40AF;font-weight:bold;padding-top:7px;">L ipsi</div>
+      <input type="text" id="lARTi500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="lARTi1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="lARTi2000" placeholder="dB" oninput="updatePreview()">
+    </div>
+    <p style="font-size:10px;color:var(--text-hint);margin-top:6px;">Absent reflexes: enter level tested + (e.g. 110+)</p>
+  </div>
+</div>
+
+<!-- vHIT TAB -->
+<div id="tVHIT" class="tab-panel">
+  <div class="fsec">
+    <div class="fsec-title">Video Head Impulse Testing</div>
+    <div style="font-size:10px;color:var(--text-hint);margin-bottom:12px;">Enter VOR gains. Check "Saccades" to reveal saccade detail fields.</div>
+    <!-- LATERAL -->
+    <div class="canal-block">
+      <div class="canal-title">Lateral SCC</div>
+      <div class="canal-sides">
+        <div>
+          <div class="side-label side-r">RIGHT</div>
+          <div class="frow fc2">
+            <div class="fld"><label>State</label>
+              <select id="rLatVhit-state" onchange="updatePreview()">
+                <option value="">—</option><option>Normal</option><option>Reduced</option><option>Enhanced</option><option>CNT</option><option>DNT</option><option>Abnormal</option>
+              </select>
+            </div>
+            <div class="fld"><label>Gain</label><input type="number" step="0.01" id="rLatVhit-gain" placeholder="0.00" max=2 min=0 oninput="updatePreview()"></div>
+          </div>
+          <label><input type="checkbox" class="chk-sac" id="rLatVhit-saccades" onchange="toggleSac('rLat');updatePreview()"> Saccades present</label>
+          <div class="saccade-sub" id="rLat-sac">
+            <div class="frow fc2">
+              <div class="fld"><label>Size</label><select id="rLatVhit-saccadeSize" onchange="updatePreview()"><option value="">—</option><option>Large</option><option>Small</option></select></div>
+              <div class="fld"><label>Position</label><select id="rLatVhit-saccadeLatency" onchange="updatePreview()"><option value="">—</option><option>Overt</option><option>Covert</option></select></div>
+            </div>
+            <div class="frow fc2">
+              <div class="fld"><label>Grouping</label><select id="rLatVhit-saccadeGrouping" onchange="updatePreview()"><option value="">—</option><option>Scattered</option><option>Gathered</option></select></div>
+              <div class="fld"><label>PR%</label><input type="number" id="rLatVhit-saccadePR" placeholder="%" max=100 min=0 oninput="updatePreview()"></div>
+            </div>
+          </div>
+          <div class="fld" style="margin-top:6px;"><label>Comment</label><input type="text" id="rLatVhit-Comment" placeholder="e.g. slip artifact" oninput="updatePreview()"></div>
+        </div>
+        <div>
+          <div class="side-label side-l">LEFT</div>
+          <div class="frow fc2">
+            <div class="fld"><label>State</label>
+              <select id="lLatVhit-state" onchange="updatePreview()">
+                <option value="">—</option><option>Normal</option><option>Reduced</option><option>Enhanced</option><option>CNT</option><option>DNT</option><option>Abnormal</option>
+              </select>
+            </div>
+            <div class="fld"><label>Gain</label><input type="number" step="0.01" id="lLatVhit-gain" placeholder="0.00" max=2 min=0 oninput="updatePreview()"></div>
+          </div>
+          <label><input type="checkbox" class="chk-sac" id="lLatVhit-saccades" onchange="toggleSac('lLat');updatePreview()"> Saccades present</label>
+          <div class="saccade-sub" id="lLat-sac">
+            <div class="frow fc2">
+              <div class="fld"><label>Size</label><select id="lLatVhit-saccadeSize" onchange="updatePreview()"><option value="">—</option><option>Large</option><option>Small</option></select></div>
+              <div class="fld"><label>Position</label><select id="lLatVhit-saccadeLatency" onchange="updatePreview()"><option value="">—</option><option>Overt</option><option>Covert</option></select></div>
+            </div>
+            <div class="frow fc2">
+              <div class="fld"><label>Grouping</label><select id="lLatVhit-saccadeGrouping" onchange="updatePreview()"><option value="">—</option><option>Scattered</option><option>Gathered</option></select></div>
+              <div class="fld"><label>PR%</label><input type="number" id="lLatVhit-saccadePR" placeholder="%" max=100 min=0 oninput="updatePreview()"></div>
+            </div>
+          </div>
+          <div class="fld" style="margin-top:6px;"><label>Comment</label><input type="text" id="lLatVhit-Comment" placeholder="e.g. slip artifact" oninput="updatePreview()"></div>
+        </div>
+      </div>
+    </div>
+    <!-- ANTERIOR -->
+    <div class="canal-block">
+      <div class="canal-title">Anterior SCC</div>
+      <div class="canal-sides">
+        <div>
+          <div class="side-label side-r">RIGHT</div>
+          <div class="frow fc2">
+            <div class="fld"><label>State</label><select id="rAntVhit-state" onchange="updatePreview()"><option value="">—</option><option>Normal</option><option>Reduced</option><option>Enhanced</option><option>CNT</option><option>DNT</option><option>Abnormal</option></select></div>
+            <div class="fld"><label>Gain</label><input type="number" step="0.01" id="rAntVhit-gain" placeholder="0.00" max=2 min=0 oninput="updatePreview()"></div>
+          </div>
+          <label><input type="checkbox" class="chk-sac" id="rAntVhit-saccades" onchange="toggleSac('rAnt');updatePreview()"> Saccades present</label>
+          <div class="saccade-sub" id="rAnt-sac">
+            <div class="frow fc2">
+              <div class="fld"><label>Size</label><select id="rAntVhit-saccadeSize" onchange="updatePreview()"><option value="">—</option><option>Large</option><option>Small</option></select></div>
+              <div class="fld"><label>Position</label><select id="rAntVhit-saccadeLatency" onchange="updatePreview()"><option value="">—</option><option>Overt</option><option>Covert</option></select></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="side-label side-l">LEFT</div>
+          <div class="frow fc2">
+            <div class="fld"><label>State</label><select id="lAntVhit-state" onchange="updatePreview()"><option value="">—</option><option>Normal</option><option>Reduced</option><option>Enhanced</option><option>CNT</option><option>DNT</option><option>Abnormal</option></select></div>
+            <div class="fld"><label>Gain</label><input type="number" step="0.01" id="lAntVhit-gain" placeholder="0.00" max=2 min=0 oninput="updatePreview()"></div>
+          </div>
+          <label><input type="checkbox" class="chk-sac" id="lAntVhit-saccades" onchange="toggleSac('lAnt');updatePreview()"> Saccades present</label>
+          <div class="saccade-sub" id="lAnt-sac">
+            <div class="frow fc2">
+              <div class="fld"><label>Size</label><select id="lAntVhit-saccadeSize" onchange="updatePreview()"><option value="">—</option><option>Large</option><option>Small</option></select></div>
+              <div class="fld"><label>Position</label><select id="lAntVhit-saccadeLatency" onchange="updatePreview()"><option value="">—</option><option>Overt</option><option>Covert</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- POSTERIOR -->
+    <div class="canal-block">
+      <div class="canal-title">Posterior SCC</div>
+      <div class="canal-sides">
+        <div>
+          <div class="side-label side-r">RIGHT</div>
+          <div class="frow fc2">
+            <div class="fld"><label>State</label><select id="rPostVhit-state" onchange="updatePreview()"><option value="">—</option><option>Normal</option><option>Reduced</option><option>Enhanced</option><option>CNT</option><option>DNT</option><option>Abnormal</option></select></div>
+            <div class="fld"><label>Gain</label><input type="number" step="0.01" id="rPostVhit-gain" placeholder="0.00" max=2 min=0 oninput="updatePreview()"></div>
+          </div>
+          <label><input type="checkbox" class="chk-sac" id="rPostVhit-saccades" onchange="toggleSac('rPost');updatePreview()"> Saccades present</label>
+          <div class="saccade-sub" id="rPost-sac">
+            <div class="frow fc2">
+              <div class="fld"><label>Size</label><select id="rPostVhit-saccadeSize" onchange="updatePreview()"><option value="">—</option><option>Large</option><option>Small</option></select></div>
+              <div class="fld"><label>Position</label><select id="rPostVhit-saccadeLatency" onchange="updatePreview()"><option value="">—</option><option>Overt</option><option>Covert</option></select></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="side-label side-l">LEFT</div>
+          <div class="frow fc2">
+            <div class="fld"><label>State</label><select id="lPostVhit-state" onchange="updatePreview()"><option value="">—</option><option>Normal</option><option>Reduced</option><option>Enhanced</option><option>CNT</option><option>DNT</option><option>Abnormal</option></select></div>
+            <div class="fld"><label>Gain</label><input type="number" step="0.01" id="lPostVhit-gain" placeholder="0.00" max=2 min=0 oninput="updatePreview()"></div>
+          </div>
+          <label><input type="checkbox" class="chk-sac" id="lPostVhit-saccades" onchange="toggleSac('lPost');updatePreview()"> Saccades present</label>
+          <div class="saccade-sub" id="lPost-sac">
+            <div class="frow fc2">
+              <div class="fld"><label>Size</label><select id="lPostVhit-saccadeSize" onchange="updatePreview()"><option value="">—</option><option>Large</option><option>Small</option></select></div>
+              <div class="fld"><label>Position</label><select id="lPostVhit-saccadeLatency" onchange="updatePreview()"><option value="">—</option><option>Overt</option><option>Covert</option></select></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VEMPs TAB -->
+<div id="tVEMPs" class="tab-panel">
+
+  <!-- cVEMP -->
+  <div class="fsec">
+    <div class="fsec-title">cVEMP (Saccule / Inferior Vestibular Nerve)</div>
+    <div style="display:grid;grid-template-columns:1fr 4px 1fr;gap:0 12px;">
+
+      <!-- AC LEFT -->
+      <div style="background:#F0F7FF;border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#1E40AF;margin-bottom:8px;border-bottom:1px solid #BFDBFE;padding-bottom:4px;">AC — Air Conduction</div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>Status</label>
+            <select id="ACcVEMP-status" onchange="updatePreview()"><option value="">—</option><option>R=L</option><option>R&lt;L</option><option>R&gt;L</option><option>NR bilat</option><option>CNT</option><option>DNT</option></select>
+          </div>
+          <div class="fld"><label>NAR %</label>
+            <input type="number" step="any" id="ACcVEMP-NAR" placeholder="%" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>R Amplitude (µV)</label>
+            <input type="number" step="any" id="ACcVEMP-rAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L Amplitude (µV)</label>
+            <input type="number" step="any" id="ACcVEMP-lAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2">
+          <div class="fld"><label>R P1 lat (ms)</label>
+            <input type="number" step="any" id="ACcVEMP-rP1latency" placeholder="ms" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L P1 lat (ms)</label>
+            <input type="number" step="any" id="ACcVEMP-lP1latency" placeholder="ms" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+
+      <!-- DIVIDER -->
+      <div style="background:var(--border);border-radius:2px;"></div>
+
+      <!-- BC RIGHT -->
+      <div style="background:#F5F3FF;border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#6D28D9;margin-bottom:8px;border-bottom:1px solid #DDD6FE;padding-bottom:4px;">BC — Bone Conduction</div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>Status</label>
+            <select id="BCcVEMP-status" onchange="updatePreview()"><option value="">—</option><option>R=L</option><option>R&lt;L</option><option>R&gt;L</option><option>NR bilat</option><option>CNT</option><option>DNT</option></select>
+          </div>
+          <div class="fld"><label>NAR %</label>
+            <input type="number" step="any" id="BCcVEMP-NAR" placeholder="%" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>R Amplitude (µV)</label>
+            <input type="number" step="any" id="BCcVEMP-rAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L Amplitude (µV)</label>
+            <input type="number" step="any" id="BCcVEMP-lAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2">
+          <div class="fld"><label>R P1 lat (ms)</label>
+            <input type="number" step="any" id="BCcVEMP-rP1latency" placeholder="ms" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L P1 lat (ms)</label>
+            <input type="number" step="any" id="BCcVEMP-lP1latency" placeholder="ms" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="frow" style="margin-top:10px;"><div class="fld"><label>cVEMP comment</label><textarea id="cVEMPcomment" rows="2" oninput="updatePreview()"></textarea></div></div>
+  </div>
+
+  <!-- oVEMP -->
+  <div class="fsec">
+    <div class="fsec-title">oVEMP (Utricle / Superior Vestibular Nerve)</div>
+    <div style="display:grid;grid-template-columns:1fr 4px 1fr;gap:0 12px;">
+
+      <!-- BC LEFT -->
+      <div style="background:#F5F3FF;border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#6D28D9;margin-bottom:8px;border-bottom:1px solid #DDD6FE;padding-bottom:4px;">BC — Bone Conduction</div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>Status</label>
+            <select id="BCoVEMP-status" onchange="updatePreview()"><option value="">—</option><option>R=L</option><option>R&lt;L</option><option>R&gt;L</option><option>NR bilat</option><option>CNT</option><option>DNT</option></select>
+          </div>
+          <div class="fld"><label>AR %</label>
+            <input type="number" step="any" id="BCoVEMP-AR" placeholder="%" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>R Amplitude (µV)</label>
+            <input type="number" step="any" id="BCoVEMP-rAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L Amplitude (µV)</label>
+            <input type="number" step="any" id="BCoVEMP-lAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2">
+          <div class="fld"><label>R N1 lat (ms)</label>
+            <input type="number" step="any" id="BCoVEMP-rN1latency" placeholder="ms" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L N1 lat (ms)</label>
+            <input type="number" step="any" id="BCoVEMP-lN1latency" placeholder="ms" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+
+      <!-- DIVIDER -->
+      <div style="background:var(--border);border-radius:2px;"></div>
+
+      <!-- AC RIGHT -->
+      <div style="background:#F0F7FF;border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#1E40AF;margin-bottom:8px;border-bottom:1px solid #BFDBFE;padding-bottom:4px;">AC — Air Conduction</div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>Status</label>
+            <select id="ACoVEMP-status" onchange="updatePreview()"><option value="">—</option><option>R=L</option><option>R&lt;L</option><option>R&gt;L</option><option>NR bilat</option><option>CNT</option><option>DNT</option></select>
+          </div>
+          <div class="fld"><label>AR %</label>
+            <input type="number" step="any" id="ACoVEMP-AR" placeholder="%" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>R Amplitude (µV)</label>
+            <input type="number" step="any" id="ACoVEMP-rAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+          <div class="fld"><label>L Amplitude (µV)</label>
+            <input type="number" step="any" id="ACoVEMP-lAmplitude" placeholder="µV" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2">
+          <div class="fld"><label>SSCD 500Hz</label>
+            <select id="ACoVEMP-SSCD500" onchange="updatePreview()"><option value="">—</option><option value="DNT">DNT</option><option value="Negative">Negative</option><option value="Right">Right</option><option value="Left">Left</option><option value="Both">Both</option></select>
+          </div>
+          <div class="fld"><label>SSCD 4kHz</label>
+            <select id="ACoVEMP-SSCD4k" onchange="updatePreview()"><option value="">—</option><option value="DNT">DNT</option><option value="Negative">Negative</option><option value="Right">Right</option><option value="Left">Left</option><option value="Both">Both</option></select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="frow" style="margin-top:10px;"><div class="fld"><label>oVEMP comment</label><textarea id="oVEMPcomment" rows="2" oninput="updatePreview()"></textarea></div></div>
+  </div>
+
+</div>
+
+<!-- VNG TAB -->
+<div id="tVNG" class="tab-panel">
+  <div class="fsec">
+    <div class="fsec-title">Oculomotor Testing</div>
+    <div class="frow fc2" style="margin-bottom:10px;">
+      <div class="fld"><label>VNG recording mode</label>
+        <select id="VNG-mode" onchange="updatePreview()"><option value="">—</option><option>Binocular</option><option>Left</option><option>Right</option></select>
+      </div>
+    </div>
+    <div class="vng-row"><label>Saccades</label><input type="text" id="saccade-comment" placeholder="NAD / findings" oninput="updatePreview()" style="grid-column:2/-1"></div>
+    <div class="vng-row"><label>Gaze centre</label><input type="text" id="Gaze_C-GE" placeholder="GE" oninput="updatePreview()"><input type="text" id="Gaze_C-S" placeholder="Vision denied" oninput="updatePreview()"></div>
+    <div class="vng-row"><label>Gaze right</label><input type="text" id="Gaze_R-GE" placeholder="GE" oninput="updatePreview()"><input type="text" id="Gaze_R-S" placeholder="Vision denied" oninput="updatePreview()"></div>
+    <div class="vng-row"><label>Gaze left</label><input type="text" id="Gaze_L-GE" placeholder="GE" oninput="updatePreview()"><input type="text" id="Gaze_L-S" placeholder="Vision denied" oninput="updatePreview()"></div>
+    <div class="vng-row"><label>OKN</label><input type="text" id="OKN" placeholder="results" oninput="updatePreview()" style="grid-column:2/-1"></div>
+    <div class="vng-row"><label>Tracking</label><input type="text" id="Tracking" placeholder="results" oninput="updatePreview()" style="grid-column:2/-1"></div>
+    <div class="vng-row"><label>SVIN</label><input type="text" id="svinResult" placeholder="e.g. No significant nystagmus" oninput="updatePreview()" style="grid-column:2/-1"></div>
+  </div>
+  <div class="fsec">
+    <div class="fsec-title">Positional Testing (VNG goggles, vision denied)</div>
+    <div class="pos-row"><label>R Dix-Hallpike</label>
+      <select id="rDHP-result" onchange="updatePreview()"><option value="">—</option><option value="Negative">Negative</option><option value="postCanalithiasis">Post. Canalithiasis</option><option value="postCupulolithiasis">Post. Cupulolithiasis</option><option value="antCanalithiasis">Ant. Canalithiasis</option></select>
+      <input type="text" id="rDHP-comment" placeholder="comment" oninput="updatePreview()">
+    </div>
+    <div class="pos-row"><label>L Dix-Hallpike</label>
+      <select id="lDHP-result" onchange="updatePreview()"><option value="">—</option><option value="Negative">Negative</option><option value="postCanalithiasis">Post. Canalithiasis</option><option value="postCupulolithiasis">Post. Cupulolithiasis</option><option value="antCanalithiasis">Ant. Canalithiasis</option></select>
+      <input type="text" id="lDHP-comment" placeholder="comment" oninput="updatePreview()">
+    </div>
+    <div class="pos-row"><label>R Roll test</label>
+      <select id="rRoll-result" onchange="updatePreview()"><option value="">—</option><option value="Negative">Negative</option><option value="latCanalithiasis">Lat. Canalithiasis</option><option value="latCupulolithiasis">Lat. Cupulolithiasis</option></select>
+      <input type="text" id="rRoll-comment" placeholder="comment" oninput="updatePreview()">
+    </div>
+    <div class="pos-row"><label>L Roll test</label>
+      <select id="lRoll-result" onchange="updatePreview()"><option value="">—</option><option value="Negative">Negative</option><option value="latCanalithiasis">Lat. Canalithiasis</option><option value="latCupulolithiasis">Lat. Cupulolithiasis</option></select>
+      <input type="text" id="lRoll-comment" placeholder="comment" oninput="updatePreview()">
+    </div>
+    <div class="pos-row"><label>Bow &amp; Lean</label>
+      <select id="bow-lean-result" onchange="updatePreview()"><option value="">—</option><option>DNT</option><option>Negative</option><option>Right</option><option>Left</option></select>
+      <input type="text" id="bow-lean-comment" placeholder="comment" oninput="updatePreview()">
+    </div>
+  </div>
+  <div class="fsec">
+    <div class="fsec-title">Caloric Testing</div>
+    <div class="frow" style="margin-bottom:10px;">
+      <div class="fld"><label>30° spontaneous nystagmus</label><input type="text" id="30degSpont" placeholder="None / describe" oninput="updatePreview()"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 4px 1fr;gap:0 12px;margin-bottom:10px;">
+      <!-- BITHERMAL -->
+      <div style="background:#F0F7FF;border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#1E40AF;margin-bottom:8px;border-bottom:1px solid #BFDBFE;padding-bottom:4px;">Bithermal</div>
+        <div class="frow fc2">
+          <div class="fld"><label>Status</label>
+            <select id="Caloric-status" onchange="updatePreview()"><option value="">—</option><option>R=L</option><option>R&lt;L</option><option>R&gt;L</option><option>NR bilat</option><option>CNT</option><option>DNT</option></select>
+          </div>
+          <div class="fld"><label>UW %</label>
+            <input type="number" step="any" id="Caloric-UW" placeholder="%" oninput="updatePreview()">
+          </div>
+        </div>
+      </div>
+      <!-- DIVIDER -->
+      <div style="background:var(--border);border-radius:2px;"></div>
+      <!-- MONOTHERMAL -->
+      <div style="background:#F5F3FF;border-radius:6px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#6D28D9;margin-bottom:8px;border-bottom:1px solid #DDD6FE;padding-bottom:4px;">Monothermal Warm</div>
+        <div class="frow fc2" style="margin-bottom:8px;">
+          <div class="fld"><label>Status</label>
+            <select id="Caloric-monoStatus" onchange="updatePreview()"><option value="">—</option><option>R=L</option><option>R&lt;L</option><option>R&gt;L</option><option>NR bilat</option><option>CNT</option><option>DNT</option></select>
+          </div>
+          <div class="fld"><label>UW %</label>
+            <input type="number" step="any" id="Caloric-monoUW" placeholder="%" oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="frow fc2">
+          <div class="fld"><label>R SPV (°/s)</label>
+            <input type="number" step="any" id="Caloric-rwR" placeholder="°/s" oninput="calcCaloricMono();updatePreview()">
+          </div>
+          <div class="fld"><label>L SPV (°/s)</label>
+            <input type="number" step="any" id="Caloric-lwR" placeholder="°/s" oninput="calcCaloricMono();updatePreview()">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frow"><div class="fld"><label>Caloric comment</label><textarea id="caloric-comment" rows="2" oninput="updatePreview()"></textarea></div></div>
+  </div>
+  <div class="fsec">
+    <div class="fsec-title">Other Tests &amp; VNG Comment</div>
+    <div class="frow fc2">
+      <div class="fld"><label>Other test results</label><textarea id="otherTests" rows="3" oninput="updatePreview()"></textarea></div>
+      <div class="fld"><label>VNG comment</label><textarea id="vngComment" rows="3" oninput="updatePreview()"></textarea></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end form-col -->
+
+<!-- ═══════════════════ OUTPUT COLUMN ═══════════════════ -->
+<div class="output-col">
+  <div class="output-tabs">
+    <button class="output-tab active" id="tab-notes" onclick="switchOutput('notes')">📋 Clinical Notes</button>
+    <button class="output-tab" id="tab-report" onclick="switchOutput('report')">✉ Report Letter</button>
+  </div>
+  <div class="output-content">
+
+    <!-- NOTES PANEL -->
+    <div id="out-notes" class="out-panel active">
+      <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+      <div id="notesPreview" class="notes-page">
+        <div class="empty-hint">Fill in patient details to see the clinical notes preview.</div>
+      </div>
+    </div>
+
+    <!-- REPORT PANEL -->
+    <div id="out-report" class="out-panel">
+      <div class="api-row">
+        <input type="password" id="apiKey" placeholder="sk-ant-... (Anthropic API key)">
+        <button onclick="toggleKey()" style="padding:6px 10px;border:1px solid var(--border-strong);border-radius:var(--rs);background:var(--surface);cursor:pointer;font-size:13px;">👁</button>
+      </div>
+      <p class="api-hint">Get your key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> — stored in browser session only.</p>
+      <div id="reportError" class="err-box" style="display:none;"></div>
+      <button class="gen-btn" id="genBtn" onclick="generateReport()">
+        <div class="spinner"></div>
+        <span id="genTxt">Generate Report Letter</span>
+      </button>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px;" id="copyRow" style="display:none">
+        <button class="copy-btn" onclick="copyReport()">⊘ Copy report</button>
+      </div>
+      <div id="reportOut" class="report-out"><div class="empty-hint">Enter your API key and click Generate to draft the report letter from the form data and Heidi note.</div></div>
+    </div>
+
+  </div>
+</div>
+</div><!-- end main -->
+
+<form id="sheetsForm" method="POST" action="https://script.google.com/macros/s/AKfycbxbdUR7ohtdDiBlnfKxxFtHSp1libETFuwiLIV0FeC6PeZywmJUU4E41F_lyi88C7CO/exec" style="display:none">
+  <input name="patientTags" id="sf-patientTags">
+  <input name="clinician" id="sf-clinician">
+  <input name="fname" id="sf-fname"><input name="lname" id="sf-lname">
+  <input name="dob" id="sf-dob"><input name="sex" id="sf-sex">
+  <input name="sessionNotes" id="sf-sessionNotes">
+  <input name="rTympType" id="sf-rTympType"><input name="lTympType" id="sf-lTympType">
+  <input name="rTympMEP" id="sf-rTympMEP"><input name="lTympMEP" id="sf-lTympMEP">
+  <input name="rTympAdm" id="sf-rTympAdm"><input name="lTympAdm" id="sf-lTympAdm">
+  <input name="rTympVol" id="sf-rTympVol"><input name="lTympVol" id="sf-lTympVol">
+  <input name="rARTc500" id="sf-rARTc500"><input name="rARTc1000" id="sf-rARTc1000"><input name="rARTc2000" id="sf-rARTc2000">
+  <input name="lARTc500" id="sf-lARTc500"><input name="lARTc1000" id="sf-lARTc1000"><input name="lARTc2000" id="sf-lARTc2000">
+  <input name="rARTi500" id="sf-rARTi500"><input name="rARTi1000" id="sf-rARTi1000"><input name="rARTi2000" id="sf-rARTi2000">
+  <input name="lARTi500" id="sf-lARTi500"><input name="lARTi1000" id="sf-lARTi1000"><input name="lARTi2000" id="sf-lARTi2000">
+  <input name="ACcVEMP-status" id="sf-ACcVEMP-status"><input name="ACcVEMP-NAR" id="sf-ACcVEMP-NAR">
+  <input name="BCoVEMP-status" id="sf-BCoVEMP-status"><input name="BCoVEMP-AR" id="sf-BCoVEMP-AR">
+  <input name="Caloric-status" id="sf-Caloric-status"><input name="Caloric-UW" id="sf-Caloric-UW">
+  <input name="rDHP-result" id="sf-rDHP-result"><input name="lDHP-result" id="sf-lDHP-result">
+  <input name="rRoll-result" id="sf-rRoll-result"><input name="lRoll-result" id="sf-lRoll-result">
+  <button type="submit" id="sf-submit"></button>
+</form>
+
+<script>
+// ── TAB SWITCHING ──
+function openTab(e,id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  e.currentTarget.classList.add('active');
+}
+
+function switchOutput(which){
+  document.querySelectorAll('.out-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.output-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('out-'+which).classList.add('active');
+  document.getElementById('tab-'+which).classList.add('active');
+}
+
+function toggleSac(side){
+  const cb = document.getElementById(side+'Vhit-saccades');
+  document.getElementById(side+'-sac').classList.toggle('show', cb.checked);
+}
+
+// ── CALCULATIONS ──
+function calcBCoAR(){
+  const r=+v('BCoVEMP-rAmplitude'),l=+v('BCoVEMP-lAmplitude');
+  if(r&&l){set('BCoVEMP-AR',(100*(r-l)/(r+l)).toFixed(2));}
+}
+function calcACoAR(){
+  const r=+v('ACoVEMP-rAmplitude'),l=+v('ACoVEMP-lAmplitude');
+  if(r&&l){set('ACoVEMP-AR',(100*(r-l)/(r+l)).toFixed(2));}
+}
+function calcCaloricMono(){
+  const r=Math.abs(+v('Caloric-rwR')),l=Math.abs(+v('Caloric-lwR'));
+  if(r&&l){set('Caloric-monoUW',(100*(r-l)/(r+l)).toFixed(2));}
+}
+
+// ── HELPERS ──
+function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function set(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function badge(status){
+  if(!status||status==='—')return'<span class="status-badge badge-na">—</span>';
+  const abn=['Reduced','Enhanced','Abnormal','NR bilat','R<L','R>L','latCanalithiasis','latCupulolithiasis','postCanalithiasis','postCupulolithiasis','antCanalithiasis'];
+  const ok=['Normal','R=L','Negative'];
+  const cls=ok.includes(status)?'badge-ok':abn.includes(status)?'badge-abn':'badge-warn';
+  return`<span class="status-badge ${cls}">${esc(status)}</span>`;
+}
+function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
+
+// ── NOTES PREVIEW ──
+function updatePreview(){
+  const fn=v('fname'),ln=v('lname'),dob=v('dob'),nhi=v('nhi'),
+    ad=v('assessDate'),ref=v('refName'),pron=v('pronoun');
+  const hasData=fn||ln||v('heidiNote');
+  if(!hasData){document.getElementById('notesPreview').innerHTML='<div class="empty-hint">Fill in patient details to see the clinical notes preview.</div>';return;}
+
+  const rLat=v('rLatVhit-state'),lLat=v('lLatVhit-state');
+  const rAnt=v('rAntVhit-state'),lAnt=v('lAntVhit-state');
+  const rPost=v('rPostVhit-state'),lPost=v('lPostVhit-state');
+  const caloricUW=v('Caloric-UW'),caloricMono=v('Caloric-monoUW');
+  const cvemp=v('ACcVEMP-status'),cvempNAR=v('ACcVEMP-NAR');
+
+  function vhitGain(id){const g=v(id);return g?parseFloat(g).toFixed(2):'';}
+  function sacStr(side){
+    if(!document.getElementById(side+'Vhit-saccades')?.checked)return'None';
+    const sz=v(side+'Vhit-saccadeSize'),pos=v(side+'Vhit-saccadeLatency'),pr=v(side+'Vhit-saccadePR');
+    return[sz,pos,pr?'PR:'+pr+'%':''].filter(Boolean).join(', ')||'Present';
+  }
+  function posResult(sel,com){const s=v(sel),c=v(com);return[badge(s),c].filter(Boolean).join(' ');}
+
+  document.getElementById('notesPreview').innerHTML=`
+<div class="np-header">
+  <div class="np-pt-name">${fn} ${ln}</div>
+  <div class="np-meta">DOB: ${fmtDate(dob)} &nbsp;|&nbsp; NHI: ${nhi||'—'} &nbsp;|&nbsp; ${pron}</div>
+  <div class="np-meta">Assessment: ${fmtDate(ad)||'—'} &nbsp;|&nbsp; Referring: ${ref||'—'}</div>
+</div>
+
+<div class="np-section">
+  <div class="np-sec-title">Pre-Assessment</div>
+  <table class="np-table">
+    <tr><th style="width:110px">Check</th><th>Result</th></tr>
+    ${v('eyeexam')?`<tr><td>Eye exam</td><td>${v('eyeexam')}</td></tr>`:''}
+    ${v('otoscopy')?`<tr><td>Otoscopy</td><td>${v('otoscopy')}</td></tr>`:''}
+    ${v('audiometry')?`<tr><td>Audiometry</td><td>${v('audiometry')}</td></tr>`:''}
+    <tr><td>Tympanometry</td><td>
+      R: Type ${v('rTympType')||'—'} ${v('rTympMEP')?'MEP '+v('rTympMEP')+'daPa':''} ${v('rTympAdm')?'/ '+v('rTympAdm')+'mho':''} &nbsp;|&nbsp;
+      L: Type ${v('lTympType')||'—'} ${v('lTympMEP')?'MEP '+v('lTympMEP')+'daPa':''} ${v('lTympAdm')?'/ '+v('lTympAdm')+'mho':''}
+    </td></tr>
+    <tr><td>Acoustic Reflexes</td><td>
+      <span style="color:#991B1B">RC:</span> ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].map(x=>x||'—').join(' / ')}
+      &nbsp;<span style="color:#991B1B">RI:</span> ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].map(x=>x||'—').join(' / ')}
+      &nbsp;|&nbsp;
+      <span style="color:#1E40AF">LC:</span> ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].map(x=>x||'—').join(' / ')}
+      &nbsp;<span style="color:#1E40AF">LI:</span> ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].map(x=>x||'—').join(' / ')}
+      <span style="font-size:9px;color:var(--text-hint)"> (0.5 / 1 / 2 kHz)</span>
+    </td></tr>
+  </table>
+</div>
+
+<div class="np-section">
+  <div class="np-sec-title">Vestibular Organ Summary</div>
+  <div class="anatomy-grid">
+    <div class="anatomy-card">
+      <div class="organ">Lateral SCC (vHIT)</div>
+      <div class="sides">
+        <div class="anatomy-side"><div class="side-tag-r" style="font-size:9px">RIGHT</div><div class="val">${badge(rLat)}</div><div style="font-size:10px">${vhitGain('rLatVhit-gain')||'—'}</div></div>
+        <div class="anatomy-side"><div class="side-tag-l" style="font-size:9px">LEFT</div><div class="val">${badge(lLat)}</div><div style="font-size:10px">${vhitGain('lLatVhit-gain')||'—'}</div></div>
+      </div>
+    </div>
+    <div class="anatomy-card">
+      <div class="organ">Lateral SCC (Caloric)</div>
+      <div style="font-size:11px;line-height:1.7;">
+        <span style="font-size:9px;color:var(--text-hint);font-weight:bold;">Bithermal:</span> ${badge(v('Caloric-status'))} UW: ${caloricUW?caloricUW+'%':'—'}<br>
+        <span style="font-size:9px;color:var(--text-hint);font-weight:bold;">Monothermal:</span> ${badge(v('Caloric-monoStatus'))} UW: ${caloricMono?caloricMono+'%':'—'}
+      </div>
+    </div>
+    <div class="anatomy-card">
+      <div class="organ">Anterior SCC</div>
+      <div class="sides">
+        <div class="anatomy-side"><div class="side-tag-r" style="font-size:9px">RIGHT</div><div class="val">${badge(rAnt)}</div><div style="font-size:10px">${vhitGain('rAntVhit-gain')||'—'}</div></div>
+        <div class="anatomy-side"><div class="side-tag-l" style="font-size:9px">LEFT</div><div class="val">${badge(lAnt)}</div><div style="font-size:10px">${vhitGain('lAntVhit-gain')||'—'}</div></div>
+      </div>
+    </div>
+    <div class="anatomy-card">
+      <div class="organ">Posterior SCC</div>
+      <div class="sides">
+        <div class="anatomy-side"><div class="side-tag-r" style="font-size:9px">RIGHT</div><div class="val">${badge(rPost)}</div><div style="font-size:10px">${vhitGain('rPostVhit-gain')||'—'}</div></div>
+        <div class="anatomy-side"><div class="side-tag-l" style="font-size:9px">LEFT</div><div class="val">${badge(lPost)}</div><div style="font-size:10px">${vhitGain('lPostVhit-gain')||'—'}</div></div>
+      </div>
+    </div>
+    <div class="anatomy-card">
+      <div class="organ">Saccule / cVEMP</div>
+      <div style="font-size:11px;line-height:1.6;">
+        <span style="font-size:9px;color:var(--text-hint);font-weight:bold;">AC:</span> ${badge(cvemp)} NAR: ${cvempNAR?cvempNAR+'%':'—'}<br>
+        <span style="font-size:9px;color:var(--text-hint);font-weight:bold;">BC:</span> ${badge(v('BCcVEMP-status'))} NAR: ${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}
+      </div>
+    </div>
+    <div class="anatomy-card">
+      <div class="organ">Utricle / oVEMP</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:11px;line-height:1.8;">
+        <div><span style="font-size:9px;color:var(--text-hint);font-weight:bold;">BC:</span> ${badge(v('BCoVEMP-status'))} AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'%':'—'}</div>
+        <div><span style="font-size:9px;color:var(--text-hint);font-weight:bold;">SSCD 500Hz:</span> ${v('ACoVEMP-SSCD500')||'—'}</div>
+        <div><span style="font-size:9px;color:var(--text-hint);font-weight:bold;">AC:</span> ${badge(v('ACoVEMP-status'))} AR: ${v('ACoVEMP-AR')?v('ACoVEMP-AR')+'%':'—'}</div>
+        <div><span style="font-size:9px;color:var(--text-hint);font-weight:bold;">SSCD 4kHz:</span> ${v('ACoVEMP-SSCD4k')||'—'}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="np-section">
+  <div class="np-sec-title">vHIT</div>
+  <table class="np-table">
+    <tr><th>Canal</th><th>R State</th><th>R Gain</th><th>R Saccades</th><th>L State</th><th>L Gain</th><th>L Saccades</th></tr>
+    <tr><td>Lateral</td><td>${badge(rLat)}</td><td>${vhitGain('rLatVhit-gain')||'—'}</td><td>${sacStr('rLat')}</td><td>${badge(lLat)}</td><td>${vhitGain('lLatVhit-gain')||'—'}</td><td>${sacStr('lLat')}</td></tr>
+    <tr><td>Anterior</td><td>${badge(rAnt)}</td><td>${vhitGain('rAntVhit-gain')||'—'}</td><td>${sacStr('rAnt')}</td><td>${badge(lAnt)}</td><td>${vhitGain('lAntVhit-gain')||'—'}</td><td>${sacStr('lAnt')}</td></tr>
+    <tr><td>Posterior</td><td>${badge(rPost)}</td><td>${vhitGain('rPostVhit-gain')||'—'}</td><td>${sacStr('rPost')}</td><td>${badge(lPost)}</td><td>${vhitGain('lPostVhit-gain')||'—'}</td><td>${sacStr('lPost')}</td></tr>
+  </table>
+</div>
+
+<div class="np-2col">
+  <div class="np-section">
+    <div class="np-sec-title">cVEMP</div>
+    <table class="np-table">
+      <tr><th>Mode</th><th>Status</th><th>NAR</th><th>RP1</th><th>LP1</th></tr>
+      <tr><td>AC</td><td>${badge(v('ACcVEMP-status'))}</td><td>${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'%':'—'}</td><td>${v('ACcVEMP-rP1latency')||'—'}</td><td>${v('ACcVEMP-lP1latency')||'—'}</td></tr>
+      <tr><td>BC</td><td>${badge(v('BCcVEMP-status'))}</td><td>${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}</td><td>${v('BCcVEMP-rP1latency')||'—'}</td><td>${v('BCcVEMP-lP1latency')||'—'}</td></tr>
+    </table>
+    ${v('cVEMPcomment')?`<div class="np-notes" style="margin-top:4px">${v('cVEMPcomment')}</div>`:''}
+  </div>
+  <div class="np-section">
+    <div class="np-sec-title">oVEMP</div>
+    <table class="np-table">
+      <tr><th>Mode</th><th>Status</th><th>AR</th><th>RAmp</th><th>LAmp</th><th>RN1</th><th>LN1</th></tr>
+      <tr><td>BC</td><td>${badge(v('BCoVEMP-status'))}</td><td>${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'%':'—'}</td><td>${v('BCoVEMP-rAmplitude')||'—'}</td><td>${v('BCoVEMP-lAmplitude')||'—'}</td><td>${v('BCoVEMP-rN1latency')||'—'}</td><td>${v('BCoVEMP-lN1latency')||'—'}</td></tr>
+      <tr><td>AC</td><td>${badge(v('ACoVEMP-status'))}</td><td>${v('ACoVEMP-AR')?v('ACoVEMP-AR')+'%':'—'}</td><td>${v('ACoVEMP-rAmplitude')||'—'}</td><td>${v('ACoVEMP-lAmplitude')||'—'}</td><td>—</td><td>—</td></tr>
+    </table>
+    ${v('oVEMPcomment')?`<div class="np-notes" style="margin-top:4px">${v('oVEMPcomment')}</div>`:''}
+  </div>
+</div>
+
+<div class="np-section">
+  <div class="np-sec-title">Positional Testing</div>
+  <table class="np-table">
+    <tr><th>Test</th><th>Result</th><th>Comment</th></tr>
+    <tr><td>R Dix-Hallpike</td><td>${badge(v('rDHP-result'))}</td><td>${v('rDHP-comment')||'—'}</td></tr>
+    <tr><td>L Dix-Hallpike</td><td>${badge(v('lDHP-result'))}</td><td>${v('lDHP-comment')||'—'}</td></tr>
+    <tr><td>R Roll</td><td>${badge(v('rRoll-result'))}</td><td>${v('rRoll-comment')||'—'}</td></tr>
+    <tr><td>L Roll</td><td>${badge(v('lRoll-result'))}</td><td>${v('lRoll-comment')||'—'}</td></tr>
+    <tr><td>Bow &amp; Lean</td><td>${badge(v('bow-lean-result'))}</td><td>${v('bow-lean-comment')||'—'}</td></tr>
+  </table>
+</div>
+
+<div class="np-section">
+  <div class="np-sec-title">Caloric Testing</div>
+  <table class="np-table">
+    <tr><th>Test</th><th>Status</th><th>UW %</th><th>Normal limit</th></tr>
+    <tr><td>Bithermal</td><td>${badge(v('Caloric-status'))}</td><td>${caloricUW?caloricUW+'%':'—'}</td><td>&lt;25%</td></tr>
+    <tr><td>Monothermal warm</td><td>${badge(v('Caloric-monoStatus'))}</td><td>${caloricMono?caloricMono+'%':'—'}</td><td>&lt;15%</td></tr>
+  </table>
+  ${v('caloric-comment')?`<div class="np-notes" style="margin-top:6px">${v('caloric-comment')}</div>`:''}
+  ${v('30degSpont')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">30° spontaneous nystagmus:</span> ${v('30degSpont')}</div>`:''}
+</div>
+
+<div class="np-section">
+  <div class="np-sec-title">Oculomotor (VNG)${v('VNG-mode')?` <span style="font-weight:normal;font-size:9px;color:var(--text-muted);text-transform:none;letter-spacing:0;">— ${v('VNG-mode')} recording</span>`:''}</div>
+  <table class="np-table">
+    <tr><th>Test</th><th>GE / Result</th><th>Vision Denied</th></tr>
+    <tr><td>Saccades</td><td colspan="2">${v('saccade-comment')||'—'}</td></tr>
+    <tr><td>Gaze Centre</td><td>${v('Gaze_C-GE')||'—'}</td><td>${v('Gaze_C-S')||'—'}</td></tr>
+    <tr><td>Gaze Right</td><td>${v('Gaze_R-GE')||'—'}</td><td>${v('Gaze_R-S')||'—'}</td></tr>
+    <tr><td>Gaze Left</td><td>${v('Gaze_L-GE')||'—'}</td><td>${v('Gaze_L-S')||'—'}</td></tr>
+    <tr><td>OKN</td><td colspan="2">${v('OKN')||'—'}</td></tr>
+    <tr><td>Smooth pursuit</td><td colspan="2">${v('Tracking')||'—'}</td></tr>
+    <tr><td>SVIN</td><td colspan="2">${v('svinResult')||'—'}</td></tr>
+  </table>
+  ${v('otherTests')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">Other tests:</span><br>${v('otherTests')}</div>`:''}
+  ${v('vngComment')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">VNG comment:</span><br>${v('vngComment')}</div>`:''}
+</div>
+
+${v('sessionNotes')?`<div class="np-section"><div class="np-sec-title">Session Notes</div><div class="np-notes">${v('sessionNotes')}</div></div>`:''}
+${v('refReason')?`<div class="np-section"><div class="np-sec-title">Referral Reason</div><div class="np-notes">${v('refReason')}</div></div>`:''}
+${v('heidiNote')?`<div class="np-section"><div class="np-sec-title">Heidi SOAP Note</div><div class="np-notes" style="font-size:10px;max-height:300px;overflow-y:auto;">${v('heidiNote').replace(/\n/g,'<br>')}</div></div>`:''}
+`;
+}
+
+// ── REPORT GENERATION ──
+const SYS=`You are assisting Michael Sanders, a Vestibular Audiologist at the Dizziness Clinic in Auckland, New Zealand, to draft vestibular assessment report letters.
+
+STYLE AND TONE:
+- Write in Michael's voice: formal, clinically precise, warm, and confident
+- Use flowing prose paragraphs throughout — not bullet points — except where explicitly instructed below
+- The clinical history should read as a rich narrative, incorporating the patient's own functional experience and words where relevant
+- Use "?" (question mark) notation for uncertain or soft findings, e.g. "? possible central sign", "? significance"
+- Include specific SPV values inline in findings prose where provided, e.g. "(SPV: 3°/s)"
+- For abnormal vHIT gains, always include the gain value and normal range in square brackets inline, e.g. "right lateral [0.3, N<0.8]"
+- Never invent findings, values, or clinical details not present in the data provided
+- Where a test was not performed (CNT/DNT) or data is absent, omit that item rather than stating "not recorded"
+- Output ONLY the letter text — no markdown, no # headers, no preamble
+
+GREETINGS AND SIGN-OFF:
+- Always open with "Tēnā koe" (not "Dear")
+- Always close with "Ngā mihi,"
+- Sign-off block is always exactly:
+  Ngā mihi,
+
+  Michael Sanders
+  Vestibular Audiologist
+  NZDBC
+  PhD, MAud, BSc, MNZAS
+
+REPORT STRUCTURE:
+1. Header block (date, referrer, Re: line with patient name / DOB / NHI)
+2. Blank line, then "Tēnā koe"
+3. "Thank you for referring [first name] for vestibular assessment" + referral reason if provided
+4. "Clinical History" section — rich prose narrative from Heidi Subjective
+5. "Summary and Clinical Impression" — 1-2 sentences of overall impression, then "Key findings:" as bullet points (•), then "Recommendations:" as prose paragraph(s)
+6. "Detailed Assessment Findings" heading
+7. Sub-sections in this order (omit any section where all data is absent or DNT/CNT):
+   - Audiometry (ONLY if audiometry field is populated with meaningful findings)
+   - Middle Ear Function
+   - Oculomotor Testing (bullet per test; SVIN as its own titled paragraph after)
+   - Positional Testing
+   - Caloric Testing
+   - Video Head Impulse Testing (vHIT)
+   - Vestibular Evoked Myogenic Potentials
+8. Closing line: "Please contact me if further information is required or if I can assist with ongoing management."
+9. Sign-off block
+
+SECTION-SPECIFIC INSTRUCTIONS:
+
+Clinical History: Third person, patient's pronoun. Rich and narrative — functional impact, patient's own descriptions, relevant negatives (no headache, no hearing change etc where noted). Include clinical observations or asides from session notes as parenthetical remarks.
+
+Summary and Clinical Impression: 1-2 sentences of overall impression integrating the key pattern across all findings. Then "Key findings:" as bullet points (•) — concise, specific, including laterality and magnitude where relevant (e.g. "80% right lateral canal paresis"). Then "Recommendations:" as prose — specific, action-oriented, may use first person. If BPPV was treated in session, state this.
+
+Middle Ear Function: Bullet points. Tympanogram type bilaterally. Acoustic reflexes — note any asymmetry explicitly (e.g. "present in the left ear but absent for the right").
+
+Oculomotor Testing: Bullet point per test — Saccades, Gaze Testing (note any spontaneous or gaze-evoked nystagmus with direction and SPV), OKN, Smooth Pursuit. Then separate titled paragraph: "Skull Vibration Induced Nystagmus (SVIN) Testing" with its own bullet.
+
+Positional Testing: Intro sentence stating method (with vision occluding goggles). Bullet per manoeuvre. For positive BPPV: describe nystagmus direction, torsion, onset characteristics, canal and side diagnosis. If treated in session, describe treatment and outcome. For negative: state "Negative bilaterally" or per side. Include any persistent positional nystagmus with direction, SPV and ? notation.
+
+Caloric Testing: State irrigation method first ("Bi-thermal caloric irrigations by air at 24° and 50°C"). Then bullets: symmetry description (e.g. "Asymmetric responses — right ear weaker / left ear stronger"), UW% with [N= <25%], interpretation sentence. If monothermal only, adjust accordingly.
+
+vHIT: Prose paragraph. For normal canals state gains are within normal limits bilaterally with no catch-up saccades. For abnormal canals, name the canal and side, give the gain value with normal range in square brackets, and describe the saccade characteristics (size, pattern — e.g. "significant large scattered catch-up saccades").
+
+Vestibular Evoked Myogenic Potentials: Bullet point per modality. Format:
+  • AC cVEMP (Saccule/Inferior Vestibular Nerve): [Symmetrical/Asymmetrical] responses were obtained (NAR: X%, N>30%) [plain-English interpretation if abnormal, e.g. "indicating absent or weaker left ear saccular function"]
+  • BC cVEMP: [results if performed]
+  • BC oVEMP (Utricle/Superior Vestibular Nerve): [Symmetrical/Asymmetrical] responses were obtained (AR: X%, N>40%) [interpretation if abnormal; note any morphology observations e.g. double-peaked response]
+  • AC oVEMP (Utricle / Third Window Checks): Include this bullet whenever AC oVEMP was performed (i.e. SSCD fields have any value other than blank). If enhanced amplitudes: state the amplitude, the normal limit, and that this is consistent with a third window effect. If not enhanced / absent: state this and that it is inconsistent with a third window effect. Use the exact amplitude values provided.
+  Omit any modality where no data was entered.`;
+
+
+function buildPrompt(){
+  // Assemble saccade details for vHIT
+  function sacDetail(side){
+    const chk=document.getElementById(side+'Vhit-saccades');
+    if(!chk?.checked) return 'no catch-up saccades';
+    const sz=v(side+'Vhit-saccadeSize'), pos=v(side+'Vhit-saccadeLatency'), pr=v(side+'Vhit-saccadePR');
+    return['catch-up saccades present', sz, pos, pr?'PR '+pr+'%':''].filter(Boolean).join(', ');
+  }
+  // Gaze vision-denied summary
+  const gazeVD=[
+    v('Gaze_C-S')&&`centre: ${v('Gaze_C-S')}`,
+    v('Gaze_R-S')&&`right: ${v('Gaze_R-S')}`,
+    v('Gaze_L-S')&&`left: ${v('Gaze_L-S')}`
+  ].filter(Boolean).join('; ');
+
+  // AC oVEMP — include if any AC oVEMP data present
+  const sscd500=v('ACoVEMP-SSCD500'), sscd4k=v('ACoVEMP-SSCD4k');
+  const hasACoVEMP = v('ACoVEMP-status') || sscd500 || sscd4k || v('ACoVEMP-rAmplitude') || v('ACoVEMP-lAmplitude');
+  const acOvempLine = hasACoVEMP
+    ? `AC oVEMP: status ${v('ACoVEMP-status')||'—'}, AR: ${v('ACoVEMP-AR')?v('ACoVEMP-AR')+'%':'—'}, R amp: ${v('ACoVEMP-rAmplitude')||'—'}µV, L amp: ${v('ACoVEMP-lAmplitude')||'—'}µV, SSCD 500Hz: ${sscd500||'not tested'}, SSCD 4kHz: ${sscd4k||'not tested'}`
+    : 'AC oVEMP: not performed';
+
+  return`Please write a vestibular assessment report letter for Michael Sanders using the data below.
+
+════ PATIENT ════
+Name: ${v('fname')} ${v('lname')}
+DOB: ${v('dob')}
+NHI: ${v('nhi')}
+Pronoun: ${v('pronoun')}
+Assessment date: ${v('assessDate')?fmtDate(v('assessDate')):new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'})}
+Referrer: ${v('refName')}, ${v('refPractice')}
+Referral reason: ${v('refReason')||'(see Heidi note)'}
+
+════ HEIDI SOAP NOTE (primary source for history, impression, recommendations) ════
+${v('heidiNote')||'(none provided — use session notes and test data to construct narrative)'}
+
+════ SESSION NOTES ════
+${v('sessionNotes')||'(none)'}
+
+════ PRE-ASSESSMENT ════
+Eye exam: ${v('eyeexam')||'NAD'}
+Otoscopy: ${v('otoscopy')||'NAD'}
+Audiometry: ${v('audiometry')||'(not performed)'}
+
+════ MIDDLE EAR ════
+Tympanometry: R Type ${v('rTympType')||'A'}, L Type ${v('lTympType')||'A'}
+Acoustic reflexes — RC: ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].filter(Boolean).join('/')||'screened present'}, RI: ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].filter(Boolean).join('/')||'screened present'}, LC: ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].filter(Boolean).join('/')||'screened present'}, LI: ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].filter(Boolean).join('/')||'screened present'}
+
+════ OCULOMOTOR (VNG — ${v('VNG-mode')||'binocular'} recording) ════
+Saccades: ${v('saccade-comment')||'NAD'}
+Gaze (eyes open): centre ${v('Gaze_C-GE')||'NAD'}, right ${v('Gaze_R-GE')||'NAD'}, left ${v('Gaze_L-GE')||'NAD'}
+Gaze (vision denied): ${gazeVD||'NAD'}
+OKN: ${v('OKN')||'NAD'}
+Smooth pursuit / tracking: ${v('Tracking')||'NAD'}
+SVIN: ${v('svinResult')||'No significant nystagmus'}
+Other: ${v('otherTests')||'none'}
+VNG comment: ${v('vngComment')||'none'}
+
+════ POSITIONAL (vision occluding goggles) ════
+30° spontaneous nystagmus: ${v('30degSpont')||'none noted'}
+R Dix-Hallpike: ${v('rDHP-result')||'Negative'}${v('rDHP-comment')?' — '+v('rDHP-comment'):''}
+L Dix-Hallpike: ${v('lDHP-result')||'Negative'}${v('lDHP-comment')?' — '+v('lDHP-comment'):''}
+R Roll: ${v('rRoll-result')||'Negative'}${v('rRoll-comment')?' — '+v('rRoll-comment'):''}
+L Roll: ${v('lRoll-result')||'Negative'}${v('lRoll-comment')?' — '+v('lRoll-comment'):''}
+${v('bow-lean-result')?`Bow & Lean: ${v('bow-lean-result')}${v('bow-lean-comment')?' — '+v('bow-lean-comment'):''}` :''}
+
+════ CALORIC ════
+Bithermal: ${v('Caloric-status')||'—'}, UW: ${v('Caloric-UW')?v('Caloric-UW')+'% [N= <25%]':'not recorded'}
+Monothermal warm: ${v('Caloric-monoStatus')||'—'}, UW: ${v('Caloric-monoUW')?v('Caloric-monoUW')+'% [N= <15%]':'not recorded'}
+Comment: ${v('caloric-comment')||'none'}
+
+════ vHIT ════
+R Lateral: ${v('rLatVhit-state')||'Normal'}, gain ${v('rLatVhit-gain')||'—'}, ${sacDetail('rLat')}
+L Lateral: ${v('lLatVhit-state')||'Normal'}, gain ${v('lLatVhit-gain')||'—'}, ${sacDetail('lLat')}
+R Anterior: ${v('rAntVhit-state')||'Normal'}, gain ${v('rAntVhit-gain')||'—'}, ${sacDetail('rAnt')}
+L Anterior: ${v('lAntVhit-state')||'Normal'}, gain ${v('lAntVhit-gain')||'—'}, ${sacDetail('lAnt')}
+R Posterior: ${v('rPostVhit-state')||'Normal'}, gain ${v('rPostVhit-gain')||'—'}, ${sacDetail('rPost')}
+L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—'}, ${sacDetail('lPost')}
+
+════ VEMPs ════
+AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
+BC cVEMP: ${v('BCcVEMP-status')||'—'}, NAR: ${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}, R P1: ${v('BCcVEMP-rP1latency')||'—'}ms, L P1: ${v('BCcVEMP-lP1latency')||'—'}ms
+cVEMP comment: ${v('cVEMPcomment')||'none'}
+BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N>40%)':'—'}, R amp: ${v('BCoVEMP-rAmplitude')||'—'}µV, L amp: ${v('BCoVEMP-lAmplitude')||'—'}µV, R N1: ${v('BCoVEMP-rN1latency')||'—'}ms, L N1: ${v('BCoVEMP-lN1latency')||'—'}ms
+${acOvempLine}
+oVEMP comment: ${v('oVEMPcomment')||'none'}`;
+}
+
+function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
+
+async function generateReport(){
+  const key=v('apiKey');
+  const err=document.getElementById('reportError');
+  err.style.display='none';
+  if(!key){err.textContent='Please enter your Anthropic API key.';err.style.display='block';return;}
+  if(!key.startsWith('sk-ant-')){err.textContent='Key should start with sk-ant-';err.style.display='block';return;}
+
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.classList.add('loading');
+  document.getElementById('genTxt').textContent='Generating…';
+  const out=document.getElementById('reportOut');
+  out.innerHTML='';
+  const cur=document.createElement('span');cur.className='cursor';out.appendChild(cur);
+  document.getElementById('copyRow').style.display='none';
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,stream:true,system:SYS,messages:[{role:'user',content:buildPrompt()}]})
+    });
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`API error ${res.status}`);}
+    const reader=res.body.getReader(),dec=new TextDecoder();
+    let buf='',text='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        if(line.startsWith('data: ')){
+          const d=line.slice(6);if(d==='[DONE]')break;
+          try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.text){text+=p.delta.text;out.textContent=text;out.appendChild(cur);}}catch{}
+        }
+      }
+    }
+    out.textContent=text;
+    document.getElementById('copyRow').style.display='flex';
+  }catch(e){
+    out.innerHTML='';err.textContent='Error: '+e.message;err.style.display='block';
+  }
+  btn.disabled=false;btn.classList.remove('loading');
+  document.getElementById('genTxt').textContent='Generate Report Letter';
+}
+
+function copyReport(){
+  const text=document.getElementById('reportOut').textContent;
+  if(!text)return;
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=document.querySelector('.copy-btn');
+    b.textContent='✓ Copied!';setTimeout(()=>{b.textContent='⊘ Copy report';},2000);
+  });
+}
+
+function toggleKey(){
+  const i=document.getElementById('apiKey');i.type=i.type==='password'?'text':'password';
+}
+
+// ── SAVE TO SHEETS ──
+function sendToSheets(){
+  const fields=['fname','lname','dob','sessionNotes',
+    'rTympType','lTympType','rTympMEP','lTympMEP','rTympAdm','lTympAdm','rTympVol','lTympVol',
+    'rARTc500','rARTc1000','rARTc2000','lARTc500','lARTc1000','lARTc2000',
+    'rARTi500','rARTi1000','rARTi2000','lARTi500','lARTi1000','lARTi2000',
+    'ACcVEMP-status','ACcVEMP-NAR','BCoVEMP-status','BCoVEMP-AR',
+    'Caloric-status','Caloric-UW','rDHP-result','lDHP-result','rRoll-result','lRoll-result'];
+  fields.forEach(f=>{const sf=document.getElementById('sf-'+f);if(sf)sf.value=v(f);});
+  document.getElementById('sf-clinician').value=v('clinician');
+  document.getElementById('sf-patientTags').value=[v('fname'),v('lname'),v('dob'),v('nhi')].filter(Boolean).join(' | ');
+  document.getElementById('sf-submit').click();
+}
+
+// Set today's date
+document.getElementById('assessDate').value=new Date().toISOString().split('T')[0];
+
+// ── PASSWORD GATE ──
+(function(){
+  const HASH='cf10fbcbbafd357134cbeec1ad4dfbafc52d38c1c63e38e237c6bfa2a13f6e81';
+  async function sha256(str){
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  // Check session
+  if(sessionStorage.getItem('vx_auth')==='1'){
+    document.getElementById('pwGate').classList.add('hidden');
+  }
+  window.checkPw=async function(){
+    const val=document.getElementById('pwInput').value;
+    const h=await sha256(val);
+    if(h===HASH){
+      sessionStorage.setItem('vx_auth','1');
+      document.getElementById('pwGate').classList.add('hidden');
+    } else {
+      document.getElementById('pwErr').textContent='Incorrect password. Please try again.';
+      document.getElementById('pwInput').value='';
+      document.getElementById('pwInput').focus();
+    }
+  };
+})();
+</script>
+</body>
+</html>
