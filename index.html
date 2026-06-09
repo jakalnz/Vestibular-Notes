@@ -684,11 +684,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 
     <!-- REPORT PANEL -->
     <div id="out-report" class="out-panel">
-        <div class="api-row">
-        <input type="password" id="apiKey" placeholder="sk-ant-... (Anthropic API key)">
-        <button onclick="toggleKey()" style="padding:6px 10px;border:1px solid var(--border-strong);border-radius:var(--rs);background:var(--surface);cursor:pointer;font-size:13px;">👁</button>
-      </div>
-      <p class="api-hint">Get your key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> — stored in browser session only.</p>
+        <p class="api-hint">Report generation is handled via a secure server-side proxy.</p>
       <div id="reportError" class="err-box" style="display:none;"></div>
       <button class="gen-btn" id="genBtn" onclick="generateReport()">
         <div class="spinner"></div>
@@ -1108,11 +1104,10 @@ oVEMP comment: ${v('oVEMPcomment')||'none'}`;
 function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
 
 async function generateReport(){
-  const key=v('apiKey');
   const err=document.getElementById('reportError');
   err.style.display='none';
-  if(!key){err.textContent='Please enter your Anthropic API key.';err.style.display='block';return;}
-  if(!key.startsWith('sk-ant-')){err.textContent='Key should start with sk-ant-';err.style.display='block';return;}
+
+  const PROXY_URL='https://patient-breeze-ddf7.mpsanders.workers.dev';
 
   const btn=document.getElementById('genBtn');
   btn.disabled=true;btn.classList.add('loading');
@@ -1123,17 +1118,18 @@ async function generateReport(){
   document.getElementById('copyRow').style.display='none';
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch(PROXY_URL,{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':key,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:3000,stream:true,system:SYS,messages:[{role:'user',content:buildPrompt()}]})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:3000,
+        stream:true,
+        system:SYS,
+        messages:[{role:'user',content:buildPrompt()}]
+      })
     });
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`API error ${res.status}`);}
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`Error ${res.status}`);}
     const reader=res.body.getReader(),dec=new TextDecoder();
     let buf='',text='';
     while(true){
