@@ -706,24 +706,64 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 </div><!-- end main -->
 
 <form id="sheetsForm" method="POST" action="https://script.google.com/macros/s/AKfycbxbdUR7ohtdDiBlnfKxxFtHSp1libETFuwiLIV0FeC6PeZywmJUU4E41F_lyi88C7CO/exec" style="display:none">
-  <input name="patientTags" id="sf-patientTags">
   <input name="clinician" id="sf-clinician">
-  <input name="fname" id="sf-fname"><input name="lname" id="sf-lname">
-  <input name="dob" id="sf-dob"><input name="sex" id="sf-sex">
+  <input name="assessDate" id="sf-assessDate">
+  <input name="fname" id="sf-fname">
+  <input name="lname" id="sf-lname">
+  <input name="dob" id="sf-dob">
+  <input name="nhi" id="sf-nhi">
+  <input name="pronoun" id="sf-pronoun">
+  <input name="refName" id="sf-refName">
+  <input name="refPractice" id="sf-refPractice">
+  <input name="refReason" id="sf-refReason">
   <input name="sessionNotes" id="sf-sessionNotes">
-  <input name="rTympType" id="sf-rTympType"><input name="lTympType" id="sf-lTympType">
-  <input name="rTympMEP" id="sf-rTympMEP"><input name="lTympMEP" id="sf-lTympMEP">
-  <input name="rTympAdm" id="sf-rTympAdm"><input name="lTympAdm" id="sf-lTympAdm">
-  <input name="rTympVol" id="sf-rTympVol"><input name="lTympVol" id="sf-lTympVol">
-  <input name="rARTc500" id="sf-rARTc500"><input name="rARTc1000" id="sf-rARTc1000"><input name="rARTc2000" id="sf-rARTc2000">
-  <input name="lARTc500" id="sf-lARTc500"><input name="lARTc1000" id="sf-lARTc1000"><input name="lARTc2000" id="sf-lARTc2000">
-  <input name="rARTi500" id="sf-rARTi500"><input name="rARTi1000" id="sf-rARTi1000"><input name="rARTi2000" id="sf-rARTi2000">
+  <input name="eyeexam" id="sf-eyeexam">
+  <input name="otoscopy" id="sf-otoscopy">
+  <input name="audiometry" id="sf-audiometry">
+  <input name="lTympType" id="sf-lTympType"><input name="lTympMEP" id="sf-lTympMEP"><input name="lTympAdm" id="sf-lTympAdm"><input name="lTympVol" id="sf-lTympVol">
+  <input name="rTympType" id="sf-rTympType"><input name="rTympMEP" id="sf-rTympMEP"><input name="rTympAdm" id="sf-rTympAdm"><input name="rTympVol" id="sf-rTympVol">
   <input name="lARTi500" id="sf-lARTi500"><input name="lARTi1000" id="sf-lARTi1000"><input name="lARTi2000" id="sf-lARTi2000">
+  <input name="rARTi500" id="sf-rARTi500"><input name="rARTi1000" id="sf-rARTi1000"><input name="rARTi2000" id="sf-rARTi2000">
+  <input name="lARTc500" id="sf-lARTc500"><input name="lARTc1000" id="sf-lARTc1000"><input name="lARTc2000" id="sf-lARTc2000">
+  <input name="rARTc500" id="sf-rARTc500"><input name="rARTc1000" id="sf-rARTc1000"><input name="rARTc2000" id="sf-rARTc2000">
+  <input name="rLatVhit-state" id="sf-rLatVhit-state"><input name="rLatVhit-gain" id="sf-rLatVhit-gain">
+  <input name="lLatVhit-state" id="sf-lLatVhit-state"><input name="lLatVhit-gain" id="sf-lLatVhit-gain">
+  <input name="rAntVhit-state" id="sf-rAntVhit-state"><input name="rAntVhit-gain" id="sf-rAntVhit-gain">
+  <input name="lAntVhit-state" id="sf-lAntVhit-state"><input name="lAntVhit-gain" id="sf-lAntVhit-gain">
+  <input name="rPostVhit-state" id="sf-rPostVhit-state"><input name="rPostVhit-gain" id="sf-rPostVhit-gain">
+  <input name="lPostVhit-state" id="sf-lPostVhit-state"><input name="lPostVhit-gain" id="sf-lPostVhit-gain">
   <input name="ACcVEMP-status" id="sf-ACcVEMP-status"><input name="ACcVEMP-NAR" id="sf-ACcVEMP-NAR">
+  <input name="ACcVEMP-rAmplitude" id="sf-ACcVEMP-rAmplitude"><input name="ACcVEMP-lAmplitude" id="sf-ACcVEMP-lAmplitude">
+  <input name="ACcVEMP-rP1latency" id="sf-ACcVEMP-rP1latency"><input name="ACcVEMP-lP1latency" id="sf-ACcVEMP-lP1latency">
+  <input name="BCcVEMP-status" id="sf-BCcVEMP-status"><input name="BCcVEMP-NAR" id="sf-BCcVEMP-NAR">
+  <input name="BCcVEMP-rAmplitude" id="sf-BCcVEMP-rAmplitude"><input name="BCcVEMP-lAmplitude" id="sf-BCcVEMP-lAmplitude">
+  <input name="BCcVEMP-rP1latency" id="sf-BCcVEMP-rP1latency"><input name="BCcVEMP-lP1latency" id="sf-BCcVEMP-lP1latency">
   <input name="BCoVEMP-status" id="sf-BCoVEMP-status"><input name="BCoVEMP-AR" id="sf-BCoVEMP-AR">
+  <input name="BCoVEMP-rAmplitude" id="sf-BCoVEMP-rAmplitude"><input name="BCoVEMP-lAmplitude" id="sf-BCoVEMP-lAmplitude">
+  <input name="BCoVEMP-rN1latency" id="sf-BCoVEMP-rN1latency"><input name="BCoVEMP-lN1latency" id="sf-BCoVEMP-lN1latency">
+  <input name="ACoVEMP-status" id="sf-ACoVEMP-status"><input name="ACoVEMP-AR" id="sf-ACoVEMP-AR">
+  <input name="ACoVEMP-rAmplitude" id="sf-ACoVEMP-rAmplitude"><input name="ACoVEMP-lAmplitude" id="sf-ACoVEMP-lAmplitude">
+  <input name="ACoVEMP-SSCD500" id="sf-ACoVEMP-SSCD500"><input name="ACoVEMP-SSCD4k" id="sf-ACoVEMP-SSCD4k">
+  <input name="VNG-mode" id="sf-VNG-mode">
+  <input name="saccade-comment" id="sf-saccade-comment">
+  <input name="Gaze_C-GE" id="sf-Gaze_C-GE"><input name="Gaze_C-S" id="sf-Gaze_C-S">
+  <input name="Gaze_R-GE" id="sf-Gaze_R-GE"><input name="Gaze_R-S" id="sf-Gaze_R-S">
+  <input name="Gaze_L-GE" id="sf-Gaze_L-GE"><input name="Gaze_L-S" id="sf-Gaze_L-S">
+  <input name="OKN" id="sf-OKN">
+  <input name="Tracking" id="sf-Tracking">
+  <input name="svinResult" id="sf-svinResult">
+  <input name="30degSpont" id="sf-30degSpont">
+  <input name="rDHP-result" id="sf-rDHP-result"><input name="rDHP-comment" id="sf-rDHP-comment">
+  <input name="lDHP-result" id="sf-lDHP-result"><input name="lDHP-comment" id="sf-lDHP-comment">
+  <input name="rRoll-result" id="sf-rRoll-result"><input name="rRoll-comment" id="sf-rRoll-comment">
+  <input name="lRoll-result" id="sf-lRoll-result"><input name="lRoll-comment" id="sf-lRoll-comment">
+  <input name="bow-lean-result" id="sf-bow-lean-result"><input name="bow-lean-comment" id="sf-bow-lean-comment">
   <input name="Caloric-status" id="sf-Caloric-status"><input name="Caloric-UW" id="sf-Caloric-UW">
-  <input name="rDHP-result" id="sf-rDHP-result"><input name="lDHP-result" id="sf-lDHP-result">
-  <input name="rRoll-result" id="sf-rRoll-result"><input name="lRoll-result" id="sf-lRoll-result">
+  <input name="Caloric-monoStatus" id="sf-Caloric-monoStatus"><input name="Caloric-monoUW" id="sf-Caloric-monoUW">
+  <input name="Caloric-rwR" id="sf-Caloric-rwR"><input name="Caloric-lwR" id="sf-Caloric-lwR">
+  <input name="caloric-comment" id="sf-caloric-comment">
+  <input name="otherTests" id="sf-otherTests">
+  <input name="vngComment" id="sf-vngComment">
   <button type="submit" id="sf-submit"></button>
 </form>
 
@@ -1174,15 +1214,31 @@ function toggleKey(){
 
 // ── SAVE TO SHEETS ──
 function sendToSheets(){
-  const fields=['fname','lname','dob','sessionNotes',
-    'rTympType','lTympType','rTympMEP','lTympMEP','rTympAdm','lTympAdm','rTympVol','lTympVol',
-    'rARTc500','rARTc1000','rARTc2000','lARTc500','lARTc1000','lARTc2000',
-    'rARTi500','rARTi1000','rARTi2000','lARTi500','lARTi1000','lARTi2000',
-    'ACcVEMP-status','ACcVEMP-NAR','BCoVEMP-status','BCoVEMP-AR',
-    'Caloric-status','Caloric-UW','rDHP-result','lDHP-result','rRoll-result','lRoll-result'];
-  fields.forEach(f=>{const sf=document.getElementById('sf-'+f);if(sf)sf.value=v(f);});
-  document.getElementById('sf-clinician').value=v('clinician');
-  document.getElementById('sf-patientTags').value=[v('fname'),v('lname'),v('dob'),v('nhi')].filter(Boolean).join(' | ');
+  const fields=[
+    'clinician','assessDate','fname','lname','dob','nhi','pronoun',
+    'refName','refPractice','refReason','sessionNotes',
+    'eyeexam','otoscopy','audiometry',
+    'lTympType','lTympMEP','lTympAdm','lTympVol',
+    'rTympType','rTympMEP','rTympAdm','rTympVol',
+    'lARTi500','lARTi1000','lARTi2000','rARTi500','rARTi1000','rARTi2000',
+    'lARTc500','lARTc1000','lARTc2000','rARTc500','rARTc1000','rARTc2000',
+    'rLatVhit-state','rLatVhit-gain','lLatVhit-state','lLatVhit-gain',
+    'rAntVhit-state','rAntVhit-gain','lAntVhit-state','lAntVhit-gain',
+    'rPostVhit-state','rPostVhit-gain','lPostVhit-state','lPostVhit-gain',
+    'ACcVEMP-status','ACcVEMP-NAR','ACcVEMP-rAmplitude','ACcVEMP-lAmplitude','ACcVEMP-rP1latency','ACcVEMP-lP1latency',
+    'BCcVEMP-status','BCcVEMP-NAR','BCcVEMP-rAmplitude','BCcVEMP-lAmplitude','BCcVEMP-rP1latency','BCcVEMP-lP1latency',
+    'BCoVEMP-status','BCoVEMP-AR','BCoVEMP-rAmplitude','BCoVEMP-lAmplitude','BCoVEMP-rN1latency','BCoVEMP-lN1latency',
+    'ACoVEMP-status','ACoVEMP-AR','ACoVEMP-rAmplitude','ACoVEMP-lAmplitude','ACoVEMP-SSCD500','ACoVEMP-SSCD4k',
+    'VNG-mode','saccade-comment',
+    'Gaze_C-GE','Gaze_C-S','Gaze_R-GE','Gaze_R-S','Gaze_L-GE','Gaze_L-S',
+    'OKN','Tracking','svinResult','30degSpont',
+    'rDHP-result','rDHP-comment','lDHP-result','lDHP-comment',
+    'rRoll-result','rRoll-comment','lRoll-result','lRoll-comment',
+    'bow-lean-result','bow-lean-comment',
+    'Caloric-status','Caloric-UW','Caloric-monoStatus','Caloric-monoUW','Caloric-rwR','Caloric-lwR','caloric-comment',
+    'otherTests','vngComment'
+  ];
+  fields.forEach(f=>{const el=document.getElementById('sf-'+f);if(el)el.value=v(f);});
   document.getElementById('sf-submit').click();
 }
 
