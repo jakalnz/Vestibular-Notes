@@ -1131,7 +1131,7 @@ async function generateReport(){
         'anthropic-version':'2023-06-01',
         'anthropic-dangerous-direct-browser-access':'true'
       },
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,stream:true,system:SYS,messages:[{role:'user',content:buildPrompt()}]})
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:3000,stream:true,system:SYS,messages:[{role:'user',content:buildPrompt()}]})
     });
     if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`API error ${res.status}`);}
     const reader=res.body.getReader(),dec=new TextDecoder();
