@@ -684,11 +684,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 
     <!-- REPORT PANEL -->
     <div id="out-report" class="out-panel">
-      <div class="api-row">
-        <input type="password" id="apiKey" placeholder="Proxy token (from Cloudflare Worker)">
-        <button onclick="toggleKey()" style="padding:6px 10px;border:1px solid var(--border-strong);border-radius:var(--rs);background:var(--surface);cursor:pointer;font-size:13px;">👁</button>
-      </div>
-      <p class="api-hint">Enter the proxy token set in your Cloudflare Worker. The Anthropic API key is stored securely server-side.</p>
+        <p class="api-hint">Report generation is handled via a secure server-side proxy.</p>
       <div id="reportError" class="err-box" style="display:none;"></div>
       <button class="gen-btn" id="genBtn" onclick="generateReport()">
         <div class="spinner"></div>
@@ -1108,12 +1104,9 @@ oVEMP comment: ${v('oVEMPcomment')||'none'}`;
 function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
 
 async function generateReport(){
-  const token=v('apiKey');
   const err=document.getElementById('reportError');
   err.style.display='none';
-  if(!token){err.textContent='Please enter your proxy token.';err.style.display='block';return;}
 
-  // Proxy Worker URL — update this after deploying your Cloudflare Worker
   const PROXY_URL='https://patient-breeze-ddf7.mpsanders.workers.dev';
 
   const btn=document.getElementById('genBtn');
@@ -1127,10 +1120,7 @@ async function generateReport(){
   try{
     const res=await fetch(PROXY_URL,{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'X-Proxy-Token':token
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:3000,
