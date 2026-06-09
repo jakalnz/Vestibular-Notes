@@ -151,6 +151,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
   .output-col{width:100%;border:none;max-height:none;}
   .output-content{padding:0;}
   .out-panel{display:block!important;}
+  .np-notes{max-height:none!important;overflow:visible!important;}
 }
 </style>
 </head>
@@ -250,50 +251,54 @@ input.chk-sac{width:auto!important;margin-right:4px;}
   </div>
   <div class="fsec">
     <div class="fsec-title">Tympanometry</div>
-    <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;align-items:end;margin-bottom:6px;">
+    <div style="display:grid;grid-template-columns:40px 70px 80px 80px 70px;gap:8px;align-items:end;margin-bottom:6px;">
       <div style="font-size:11px;font-weight:bold;color:var(--text-muted);">Ear</div>
       <div><label>Type</label></div><div><label>MEP (daPa)</label></div><div><label>Peak (mho)</label></div><div><label>Vol (ml)</label></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;margin-bottom:6px;">
-      <div style="font-size:11px;font-weight:bold;color:#991B1B;padding-top:7px;">RIGHT</div>
-      <input type="text" id="rTympType" placeholder="A" oninput="updatePreview()">
-      <input type="number" id="rTympMEP" placeholder="daPa" oninput="updatePreview()">
-      <input type="number" step="any" id="rTympAdm" placeholder="mho" oninput="updatePreview()">
-      <input type="number" step="any" id="rTympVol" placeholder="ml" oninput="updatePreview()">
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 80px 80px 80px 80px;gap:8px;">
+    <div style="display:grid;grid-template-columns:40px 70px 80px 80px 70px;gap:8px;margin-bottom:6px;">
       <div style="font-size:11px;font-weight:bold;color:#1E40AF;padding-top:7px;">LEFT</div>
       <input type="text" id="lTympType" placeholder="A" oninput="updatePreview()">
       <input type="number" id="lTympMEP" placeholder="daPa" oninput="updatePreview()">
       <input type="number" step="any" id="lTympAdm" placeholder="mho" oninput="updatePreview()">
       <input type="number" step="any" id="lTympVol" placeholder="ml" oninput="updatePreview()">
     </div>
+    <div style="display:grid;grid-template-columns:40px 70px 80px 80px 70px;gap:8px;">
+      <div style="font-size:11px;font-weight:bold;color:#991B1B;padding-top:7px;">RIGHT</div>
+      <input type="text" id="rTympType" placeholder="A" oninput="updatePreview()">
+      <input type="number" id="rTympMEP" placeholder="daPa" oninput="updatePreview()">
+      <input type="number" step="any" id="rTympAdm" placeholder="mho" oninput="updatePreview()">
+      <input type="number" step="any" id="rTympVol" placeholder="ml" oninput="updatePreview()">
+    </div>
   </div>
   <div class="fsec">
     <div class="fsec-title">Acoustic Reflexes</div>
     <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;align-items:end;margin-bottom:4px;">
-      <div style="font-size:10px;font-weight:bold;">RC</div><div><label>.5k</label></div><div><label>1k</label></div><div><label>2k</label></div>
-      <div style="font-size:10px;font-weight:bold;">LC</div><div><label>.5k</label></div><div><label>1k</label></div><div><label>2k</label></div>
+      <div style="font-size:10px;font-weight:bold;">LI</div><div><label>.5k</label></div><div><label>1k</label></div><div><label>2k</label></div>
+      <div style="font-size:10px;font-weight:bold;">RI</div><div><label>.5k</label></div><div><label>1k</label></div><div><label>2k</label></div>
     </div>
     <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;margin-bottom:6px;">
-      <div style="font-size:10px;color:#991B1B;font-weight:bold;padding-top:7px;">R contra</div>
-      <input type="text" id="rARTc500" placeholder="dB" oninput="updatePreview()">
-      <input type="text" id="rARTc1000" placeholder="dB" oninput="updatePreview()">
-      <input type="text" id="rARTc2000" placeholder="dB" oninput="updatePreview()">
-      <div style="font-size:10px;color:#1E40AF;font-weight:bold;padding-top:7px;">L contra</div>
-      <input type="text" id="lARTc500" placeholder="dB" oninput="updatePreview()">
-      <input type="text" id="lARTc1000" placeholder="dB" oninput="updatePreview()">
-      <input type="text" id="lARTc2000" placeholder="dB" oninput="updatePreview()">
-    </div>
-    <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;">
-      <div style="font-size:10px;color:#991B1B;font-weight:bold;padding-top:7px;">R ipsi</div>
-      <input type="text" id="rARTi500" placeholder="dB" oninput="updatePreview()">
-      <input type="text" id="rARTi1000" placeholder="dB" oninput="updatePreview()">
-      <input type="text" id="rARTi2000" placeholder="dB" oninput="updatePreview()">
       <div style="font-size:10px;color:#1E40AF;font-weight:bold;padding-top:7px;">L ipsi</div>
       <input type="text" id="lARTi500" placeholder="dB" oninput="updatePreview()">
       <input type="text" id="lARTi1000" placeholder="dB" oninput="updatePreview()">
       <input type="text" id="lARTi2000" placeholder="dB" oninput="updatePreview()">
+      <div style="font-size:10px;color:#991B1B;font-weight:bold;padding-top:7px;">R ipsi</div>
+      <input type="text" id="rARTi500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTi1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTi2000" placeholder="dB" oninput="updatePreview()">
+    </div>
+    <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;align-items:end;margin-bottom:4px;">
+      <div style="font-size:10px;font-weight:bold;color:var(--text-hint);">LC</div><div></div><div></div><div></div>
+      <div style="font-size:10px;font-weight:bold;color:var(--text-hint);">RC</div><div></div><div></div><div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:60px repeat(3,60px) 60px repeat(3,60px);gap:6px;margin-bottom:6px;">
+      <div style="font-size:10px;color:#1E40AF;font-weight:bold;padding-top:7px;">L contra</div>
+      <input type="text" id="lARTc500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="lARTc1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="lARTc2000" placeholder="dB" oninput="updatePreview()">
+      <div style="font-size:10px;color:#991B1B;font-weight:bold;padding-top:7px;">R contra</div>
+      <input type="text" id="rARTc500" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTc1000" placeholder="dB" oninput="updatePreview()">
+      <input type="text" id="rARTc2000" placeholder="dB" oninput="updatePreview()">
     </div>
     <p style="font-size:10px;color:var(--text-hint);margin-top:6px;">Absent reflexes: enter level tested + (e.g. 110+)</p>
   </div>
@@ -810,11 +815,12 @@ function updatePreview(){
       L: Type ${v('lTympType')||'—'} ${v('lTympMEP')?'MEP '+v('lTympMEP')+'daPa':''} ${v('lTympAdm')?'/ '+v('lTympAdm')+'mho':''}
     </td></tr>
     <tr><td>Acoustic Reflexes</td><td>
-      <span style="color:#991B1B">RC:</span> ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].map(x=>x||'—').join(' / ')}
-      &nbsp;<span style="color:#991B1B">RI:</span> ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].map(x=>x||'—').join(' / ')}
-      &nbsp;|&nbsp;
-      <span style="color:#1E40AF">LC:</span> ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].map(x=>x||'—').join(' / ')}
+      <span style="color:#991B1B">RI:</span> ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].map(x=>x||'—').join(' / ')}
       &nbsp;<span style="color:#1E40AF">LI:</span> ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].map(x=>x||'—').join(' / ')}
+      ${(v('rARTc500')||v('rARTc1000')||v('rARTc2000')||v('lARTc500')||v('lARTc1000')||v('lARTc2000'))?`
+      <br><span style="color:#991B1B">RC:</span> ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].map(x=>x||'—').join(' / ')}
+      &nbsp;<span style="color:#1E40AF">LC:</span> ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].map(x=>x||'—').join(' / ')}
+      `:''}
       <span style="font-size:9px;color:var(--text-hint)"> (0.5 / 1 / 2 kHz)</span>
     </td></tr>
   </table>
@@ -942,7 +948,7 @@ function updatePreview(){
 
 ${v('sessionNotes')?`<div class="np-section"><div class="np-sec-title">Session Notes</div><div class="np-notes">${v('sessionNotes')}</div></div>`:''}
 ${v('refReason')?`<div class="np-section"><div class="np-sec-title">Referral Reason</div><div class="np-notes">${v('refReason')}</div></div>`:''}
-${v('heidiNote')?`<div class="np-section"><div class="np-sec-title">Heidi SOAP Note</div><div class="np-notes" style="font-size:10px;max-height:300px;overflow-y:auto;">${v('heidiNote').replace(/\n/g,'<br>')}</div></div>`:''}
+${v('heidiNote')?`<div class="np-section"><div class="np-sec-title">Heidi SOAP Note</div><div class="np-notes" style="font-size:10px;">${v('heidiNote').replace(/\n/g,'<br>')}</div></div>`:''}
 `;
 }
 
@@ -1055,50 +1061,51 @@ ${v('sessionNotes')||'(none)'}
 ════ PRE-ASSESSMENT ════
 Eye exam: ${v('eyeexam')||'NAD'}
 Otoscopy: ${v('otoscopy')||'NAD'}
-Audiometry: ${v('audiometry')||'(not performed)'}
+Audiometry: ${v('audiometry')||'NOT PERFORMED — omit Audiometry section'}
 
 ════ MIDDLE EAR ════
-Tympanometry: R Type ${v('rTympType')||'A'}, L Type ${v('lTympType')||'A'}
-Acoustic reflexes — RC: ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].filter(Boolean).join('/')||'screened present'}, RI: ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].filter(Boolean).join('/')||'screened present'}, LC: ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].filter(Boolean).join('/')||'screened present'}, LI: ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].filter(Boolean).join('/')||'screened present'}
+Tympanometry: ${(v('rTympType')||v('lTympType')) ? `R Type ${v('rTympType')||'A'}, L Type ${v('lTympType')||'A'}` : 'NOT PERFORMED — omit Middle Ear section'}
+Acoustic reflexes ipsi — RI: ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].filter(Boolean).join('/')||'screened present'}, LI: ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].filter(Boolean).join('/')||'screened present'}
+${(v('rARTc500')||v('rARTc1000')||v('rARTc2000')||v('lARTc500')||v('lARTc1000')||v('lARTc2000'))?`Acoustic reflexes contra — RC: ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].filter(Boolean).join('/')}, LC: ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].filter(Boolean).join('/')}` : 'Contra reflexes: NOT TESTED — do not mention in report'}
 
 ════ OCULOMOTOR (VNG — ${v('VNG-mode')||'binocular'} recording) ════
-Saccades: ${v('saccade-comment')||'NAD'}
+${(v('saccade-comment')||v('Gaze_C-GE')||v('Gaze_C-S')||v('OKN')||v('Tracking')||v('svinResult')) ? `Saccades: ${v('saccade-comment')||'NAD'}
 Gaze (eyes open): centre ${v('Gaze_C-GE')||'NAD'}, right ${v('Gaze_R-GE')||'NAD'}, left ${v('Gaze_L-GE')||'NAD'}
 Gaze (vision denied): ${gazeVD||'NAD'}
 OKN: ${v('OKN')||'NAD'}
 Smooth pursuit / tracking: ${v('Tracking')||'NAD'}
 SVIN: ${v('svinResult')||'No significant nystagmus'}
 Other: ${v('otherTests')||'none'}
-VNG comment: ${v('vngComment')||'none'}
+VNG comment: ${v('vngComment')||'none'}` : 'NOT PERFORMED — omit Oculomotor Testing and SVIN sections entirely'}
 
 ════ POSITIONAL (vision occluding goggles) ════
-30° spontaneous nystagmus: ${v('30degSpont')||'none noted'}
+${(v('rDHP-result')||v('lDHP-result')||v('rRoll-result')||v('lRoll-result')) ? `30° spontaneous nystagmus: ${v('30degSpont')||'none noted'}
 R Dix-Hallpike: ${v('rDHP-result')||'Negative'}${v('rDHP-comment')?' — '+v('rDHP-comment'):''}
 L Dix-Hallpike: ${v('lDHP-result')||'Negative'}${v('lDHP-comment')?' — '+v('lDHP-comment'):''}
 R Roll: ${v('rRoll-result')||'Negative'}${v('rRoll-comment')?' — '+v('rRoll-comment'):''}
 L Roll: ${v('lRoll-result')||'Negative'}${v('lRoll-comment')?' — '+v('lRoll-comment'):''}
-${v('bow-lean-result')?`Bow & Lean: ${v('bow-lean-result')}${v('bow-lean-comment')?' — '+v('bow-lean-comment'):''}` :''}
+${v('bow-lean-result')?`Bow & Lean: ${v('bow-lean-result')}${v('bow-lean-comment')?' — '+v('bow-lean-comment'):''}` :''}` : 'NOT PERFORMED — omit Positional Testing section entirely'}
 
 ════ CALORIC ════
-Bithermal: ${v('Caloric-status')||'—'}, UW: ${v('Caloric-UW')?v('Caloric-UW')+'% [N= <25%]':'not recorded'}
+${(v('Caloric-status')||v('Caloric-UW')||v('Caloric-monoStatus')||v('Caloric-monoUW')) ? `Bithermal: ${v('Caloric-status')||'—'}, UW: ${v('Caloric-UW')?v('Caloric-UW')+'% [N= <25%]':'not recorded'}
 Monothermal warm: ${v('Caloric-monoStatus')||'—'}, UW: ${v('Caloric-monoUW')?v('Caloric-monoUW')+'% [N= <15%]':'not recorded'}
-Comment: ${v('caloric-comment')||'none'}
+Comment: ${v('caloric-comment')||'none'}` : 'NOT PERFORMED — omit Caloric Testing section entirely'}
 
 ════ vHIT ════
-R Lateral: ${v('rLatVhit-state')||'Normal'}, gain ${v('rLatVhit-gain')||'—'}, ${sacDetail('rLat')}
+${(v('rLatVhit-state')||v('rLatVhit-gain')||v('lLatVhit-state')||v('lLatVhit-gain')) ? `R Lateral: ${v('rLatVhit-state')||'Normal'}, gain ${v('rLatVhit-gain')||'—'}, ${sacDetail('rLat')}
 L Lateral: ${v('lLatVhit-state')||'Normal'}, gain ${v('lLatVhit-gain')||'—'}, ${sacDetail('lLat')}
 R Anterior: ${v('rAntVhit-state')||'Normal'}, gain ${v('rAntVhit-gain')||'—'}, ${sacDetail('rAnt')}
 L Anterior: ${v('lAntVhit-state')||'Normal'}, gain ${v('lAntVhit-gain')||'—'}, ${sacDetail('lAnt')}
 R Posterior: ${v('rPostVhit-state')||'Normal'}, gain ${v('rPostVhit-gain')||'—'}, ${sacDetail('rPost')}
-L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—'}, ${sacDetail('lPost')}
+L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—'}, ${sacDetail('lPost')}` : 'NOT PERFORMED — omit vHIT section entirely'}
 
 ════ VEMPs ════
-AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
+${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
 BC cVEMP: ${v('BCcVEMP-status')||'—'}, NAR: ${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}, R P1: ${v('BCcVEMP-rP1latency')||'—'}ms, L P1: ${v('BCcVEMP-lP1latency')||'—'}ms
 cVEMP comment: ${v('cVEMPcomment')||'none'}
 BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N>40%)':'—'}, R amp: ${v('BCoVEMP-rAmplitude')||'—'}µV, L amp: ${v('BCoVEMP-lAmplitude')||'—'}µV, R N1: ${v('BCoVEMP-rN1latency')||'—'}ms, L N1: ${v('BCoVEMP-lN1latency')||'—'}ms
 ${acOvempLine}
-oVEMP comment: ${v('oVEMPcomment')||'none'}`;
+oVEMP comment: ${v('oVEMPcomment')||'none'}` : 'NOT PERFORMED — omit VEMPs section entirely'}`;
 }
 
 function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
