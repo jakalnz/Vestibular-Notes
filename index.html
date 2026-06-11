@@ -208,11 +208,11 @@ input.chk-sac{width:auto!important;margin-right:4px;}
     <div class="frow fc3">
       <div class="fld"><label>Date of birth</label><input type="date" id="dob" oninput="updatePreview()"></div>
       <div class="fld"><label>NHI</label><input type="text" id="nhi" placeholder="ABC1234" oninput="updatePreview()"></div>
-      <div class="fld"><label>Pronoun</label>
+      <div class="fld"><label>Sex</label>
         <select id="pronoun" onchange="updatePreview()">
-          <option value="they/them">they/them</option>
-          <option value="she/her">she/her</option>
-          <option value="he/him">he/him</option>
+          <option value="unspecified">Unspecified (they/them)</option>
+          <option value="male">Male (he/him)</option>
+          <option value="female">Female (she/her)</option>
         </select>
       </div>
     </div>
@@ -334,7 +334,6 @@ input.chk-sac{width:auto!important;margin-right:4px;}
               <div class="fld"><label>PR%</label><input type="number" id="rLatVhit-saccadePR" placeholder="%" max=100 min=0 oninput="updatePreview()"></div>
             </div>
           </div>
-          <div class="fld" style="margin-top:6px;"><label>Comment</label><input type="text" id="rLatVhit-Comment" placeholder="e.g. slip artifact" oninput="updatePreview()"></div>
         </div>
         <div>
           <div class="side-label side-l">LEFT</div>
@@ -357,7 +356,6 @@ input.chk-sac{width:auto!important;margin-right:4px;}
               <div class="fld"><label>PR%</label><input type="number" id="lLatVhit-saccadePR" placeholder="%" max=100 min=0 oninput="updatePreview()"></div>
             </div>
           </div>
-          <div class="fld" style="margin-top:6px;"><label>Comment</label><input type="text" id="lLatVhit-Comment" placeholder="e.g. slip artifact" oninput="updatePreview()"></div>
         </div>
       </div>
     </div>
@@ -429,10 +427,13 @@ input.chk-sac{width:auto!important;margin-right:4px;}
         </div>
       </div>
     </div>
+    <div class="frow" style="margin-top:10px;">
+      <div class="fld"><label>vHIT General Comment (artefact, recording quality, other observations)</label>
+        <textarea id="vhitComment" rows="2" placeholder="e.g. Some slip artefact noted for right lateral; recording quality good overall" oninput="updatePreview()"></textarea>
+      </div>
+    </div>
   </div>
 </div>
-
-<!-- VEMPs TAB -->
 <div id="tVEMPs" class="tab-panel">
 
   <!-- cVEMP -->
@@ -732,6 +733,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
   <input name="lAntVhit-state" id="sf-lAntVhit-state"><input name="lAntVhit-gain" id="sf-lAntVhit-gain">
   <input name="rPostVhit-state" id="sf-rPostVhit-state"><input name="rPostVhit-gain" id="sf-rPostVhit-gain">
   <input name="lPostVhit-state" id="sf-lPostVhit-state"><input name="lPostVhit-gain" id="sf-lPostVhit-gain">
+  <input name="vhitComment" id="sf-vhitComment">
   <input name="ACcVEMP-status" id="sf-ACcVEMP-status"><input name="ACcVEMP-NAR" id="sf-ACcVEMP-NAR">
   <input name="ACcVEMP-rAmplitude" id="sf-ACcVEMP-rAmplitude"><input name="ACcVEMP-lAmplitude" id="sf-ACcVEMP-lAmplitude">
   <input name="ACcVEMP-rP1latency" id="sf-ACcVEMP-rP1latency"><input name="ACcVEMP-lP1latency" id="sf-ACcVEMP-lP1latency">
@@ -789,7 +791,18 @@ function toggleSac(side){
 }
 
 // ── CALCULATIONS ──
-function calcBCoAR(){
+function getPronoun(){
+  const s=v('pronoun');
+  if(s==='male') return 'he/him';
+  if(s==='female') return 'she/her';
+  return 'they/them';
+}
+function getPronounLabel(){
+  const s=v('pronoun');
+  if(s==='male') return 'Male';
+  if(s==='female') return 'Female';
+  return 'Unspecified';
+}
   const r=+v('BCoVEMP-rAmplitude'),l=+v('BCoVEMP-lAmplitude');
   if(r&&l){set('BCoVEMP-AR',(100*(r-l)/(r+l)).toFixed(2));}
 }
@@ -818,7 +831,7 @@ function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDa
 // ── NOTES PREVIEW ──
 function updatePreview(){
   const fn=v('fname'),ln=v('lname'),dob=v('dob'),nhi=v('nhi'),
-    ad=v('assessDate'),ref=v('refName'),pron=v('pronoun');
+    ad=v('assessDate'),ref=v('refName');
   const hasData=fn||ln||v('heidiNote');
   if(!hasData){document.getElementById('notesPreview').innerHTML='<div class="empty-hint">Fill in patient details to see the clinical notes preview.</div>';return;}
 
@@ -839,7 +852,7 @@ function updatePreview(){
   document.getElementById('notesPreview').innerHTML=`
 <div class="np-header">
   <div class="np-pt-name">${fn} ${ln}</div>
-  <div class="np-meta">DOB: ${fmtDate(dob)} &nbsp;|&nbsp; NHI: ${nhi||'—'} &nbsp;|&nbsp; ${pron}</div>
+  <div class="np-meta">DOB: ${fmtDate(dob)} &nbsp;|&nbsp; NHI: ${nhi||'—'} &nbsp;|&nbsp; ${getPronounLabel()}</div>
   <div class="np-meta">Assessment: ${fmtDate(ad)||'—'} &nbsp;|&nbsp; Referring: ${ref||'—'}</div>
 </div>
 
@@ -924,9 +937,8 @@ function updatePreview(){
     <tr><td>Anterior</td><td>${badge(rAnt)}</td><td>${vhitGain('rAntVhit-gain')||'—'}</td><td>${sacStr('rAnt')}</td><td>${badge(lAnt)}</td><td>${vhitGain('lAntVhit-gain')||'—'}</td><td>${sacStr('lAnt')}</td></tr>
     <tr><td>Posterior</td><td>${badge(rPost)}</td><td>${vhitGain('rPostVhit-gain')||'—'}</td><td>${sacStr('rPost')}</td><td>${badge(lPost)}</td><td>${vhitGain('lPostVhit-gain')||'—'}</td><td>${sacStr('lPost')}</td></tr>
   </table>
+  ${v('vhitComment')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">vHIT comment:</span> ${v('vhitComment')}</div>`:''}
 </div>
-
-<div class="np-2col">
   <div class="np-section">
     <div class="np-sec-title">cVEMP</div>
     <table class="np-table">
@@ -1003,6 +1015,7 @@ STYLE AND TONE:
 - Include specific SPV values inline in findings prose where provided, e.g. "(SPV: 3°/s)"
 - For abnormal vHIT gains, always include the gain value and normal range in square brackets inline, e.g. "right lateral [0.3, N<0.8]"
 - Never invent findings, values, or clinical details not present in the data provided
+- The patient's name will be provided as [PATIENT]. Use this placeholder literally throughout the report — in the Re: line, greeting, clinical history, and anywhere else the first name would appear. Do not substitute a real name.
 - Where a test was not performed (CNT/DNT) or data is absent, omit that item rather than stating "not recorded"
 - Output ONLY the letter text — no markdown, no # headers, no preamble
 
@@ -1083,11 +1096,13 @@ function buildPrompt(){
 
   return`Please write a vestibular assessment report letter for Michael Sanders using the data below.
 
+NOTE: The patient's name has been replaced with [PATIENT] throughout for privacy. Use [PATIENT] as a placeholder wherever the patient's first name would appear in the report. Do not invent a name.
+
 ════ PATIENT ════
-Name: ${v('fname')} ${v('lname')}
-DOB: ${v('dob')}
-NHI: ${v('nhi')}
-Pronoun: ${v('pronoun')}
+Name: [PATIENT]
+DOB: [DOB]
+NHI: [NHI]
+Pronoun: ${getPronoun()}
 Assessment date: ${v('assessDate')?fmtDate(v('assessDate')):new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'})}
 Referrer: ${v('refName')}, ${v('refPractice')}
 Referral reason: ${v('refReason')||'(see Heidi note)'}
@@ -1137,7 +1152,8 @@ L Lateral: ${v('lLatVhit-state')||'Normal'}, gain ${v('lLatVhit-gain')||'—'}, 
 R Anterior: ${v('rAntVhit-state')||'Normal'}, gain ${v('rAntVhit-gain')||'—'}, ${sacDetail('rAnt')}
 L Anterior: ${v('lAntVhit-state')||'Normal'}, gain ${v('lAntVhit-gain')||'—'}, ${sacDetail('lAnt')}
 R Posterior: ${v('rPostVhit-state')||'Normal'}, gain ${v('rPostVhit-gain')||'—'}, ${sacDetail('rPost')}
-L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—'}, ${sacDetail('lPost')}` : 'NOT PERFORMED — omit vHIT section entirely'}
+L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—'}, ${sacDetail('lPost')}
+vHIT comment: ${v('vhitComment')||'none'}` : 'NOT PERFORMED — omit vHIT section entirely'}
 
 ════ VEMPs ════
 ${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
@@ -1186,11 +1202,11 @@ async function generateReport(){
       for(const line of lines){
         if(line.startsWith('data: ')){
           const d=line.slice(6);if(d==='[DONE]')break;
-          try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.text){text+=p.delta.text;out.textContent=text;out.appendChild(cur);}}catch{}
+          try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.text){text+=p.delta.text;out.textContent=deidentReplace(text);out.appendChild(cur);}}catch{}
         }
       }
     }
-    out.textContent=text;
+    out.textContent=deidentReplace(text);
     document.getElementById('copyRow').style.display='flex';
   }catch(e){
     out.innerHTML='';err.textContent='Error: '+e.message;err.style.display='block';
@@ -1199,7 +1215,12 @@ async function generateReport(){
   document.getElementById('genTxt').textContent='Generate Report Letter';
 }
 
-function copyReport(){
+function deidentReplace(text){
+  const fn=v('fname')||'[PATIENT]';
+  const dob=v('dob')?fmtDate(v('dob')):'[DOB]';
+  const nhi=v('nhi')||'[NHI]';
+  return text.replaceAll('[PATIENT]',fn).replaceAll('[DOB]',dob).replaceAll('[NHI]',nhi).replaceAll('[REDACTED]',dob);
+}
   const text=document.getElementById('reportOut').textContent;
   if(!text)return;
   navigator.clipboard.writeText(text).then(()=>{
@@ -1224,7 +1245,7 @@ function sendToSheets(){
     'lARTc500','lARTc1000','lARTc2000','rARTc500','rARTc1000','rARTc2000',
     'rLatVhit-state','rLatVhit-gain','lLatVhit-state','lLatVhit-gain',
     'rAntVhit-state','rAntVhit-gain','lAntVhit-state','lAntVhit-gain',
-    'rPostVhit-state','rPostVhit-gain','lPostVhit-state','lPostVhit-gain',
+    'rPostVhit-state','rPostVhit-gain','lPostVhit-state','lPostVhit-gain','vhitComment',
     'ACcVEMP-status','ACcVEMP-NAR','ACcVEMP-rAmplitude','ACcVEMP-lAmplitude','ACcVEMP-rP1latency','ACcVEMP-lP1latency',
     'BCcVEMP-status','BCcVEMP-NAR','BCcVEMP-rAmplitude','BCcVEMP-lAmplitude','BCcVEMP-rP1latency','BCcVEMP-lP1latency',
     'BCoVEMP-status','BCoVEMP-AR','BCoVEMP-rAmplitude','BCoVEMP-lAmplitude','BCoVEMP-rN1latency','BCoVEMP-lN1latency',
