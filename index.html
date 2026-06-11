@@ -803,6 +803,7 @@ function getPronounLabel(){
   if(s==='female') return 'Female';
   return 'Unspecified';
 }
+function calcBCoAR(){
   const r=+v('BCoVEMP-rAmplitude'),l=+v('BCoVEMP-lAmplitude');
   if(r&&l){set('BCoVEMP-AR',(100*(r-l)/(r+l)).toFixed(2));}
 }
@@ -1221,6 +1222,7 @@ function deidentReplace(text){
   const nhi=v('nhi')||'[NHI]';
   return text.replaceAll('[PATIENT]',fn).replaceAll('[DOB]',dob).replaceAll('[NHI]',nhi).replaceAll('[REDACTED]',dob);
 }
+function copyReport(){
   const text=document.getElementById('reportOut').textContent;
   if(!text)return;
   navigator.clipboard.writeText(text).then(()=>{
