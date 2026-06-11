@@ -1016,7 +1016,7 @@ STYLE AND TONE:
 - Include specific SPV values inline in findings prose where provided, e.g. "(SPV: 3°/s)"
 - For abnormal vHIT gains, always include the gain value and normal range in square brackets inline, e.g. "right lateral [0.3, N<0.8]"
 - Never invent findings, values, or clinical details not present in the data provided
-- The patient's name will be provided as [PATIENT]. Use this placeholder literally throughout the report — in the Re: line, greeting, clinical history, and anywhere else the first name would appear. Do not substitute a real name.
+- The patient's name will be provided as [PATIENT] (first name) and [LASTNAME] (last name). Use [PATIENT] wherever the first name appears, and [LASTNAME] in the Re: line. Use [DOB] and [NHI] for those fields. Do not substitute real values.
 - Where a test was not performed (CNT/DNT) or data is absent, omit that item rather than stating "not recorded"
 - Output ONLY the letter text — no markdown, no # headers, no preamble
 
@@ -1053,7 +1053,11 @@ SECTION-SPECIFIC INSTRUCTIONS:
 
 Clinical History: Third person, patient's pronoun. Rich and narrative — functional impact, patient's own descriptions, relevant negatives (no headache, no hearing change etc where noted). Include clinical observations or asides from session notes as parenthetical remarks.
 
-Summary and Clinical Impression: 1-2 sentences of overall impression integrating the key pattern across all findings. Then "Key findings:" as bullet points (•) — concise, specific, including laterality and magnitude where relevant (e.g. "80% right lateral canal paresis"). Then "Recommendations:" as prose — specific, action-oriented, may use first person. If BPPV was treated in session, state this.
+Summary and Clinical Impression: 1-2 sentences of overall impression integrating the key pattern across all findings. Then "Key findings:" as bullet points (•) — when findings are entirely normal, use concise summary bullets rather than listing every test result. The standard normal summary bullets are:
+  • Normal peripheral vestibular function.
+  • No evidence of BPPV.
+  • Normal performance on oculomotor function tests.
+  Add or substitute bullets only when there is something specific to highlight (e.g. a soft central sign, a treatment performed, an incidental finding). Do not bullet-point every individual normal test result when the overall picture is normal. Then "Recommendations:" as prose — specific, action-oriented, may use first person. If BPPV was treated in session, state this.
 
 Middle Ear Function: Bullet points. Tympanogram type bilaterally. Acoustic reflexes — note any asymmetry explicitly (e.g. "present in the left ear but absent for the right").
 
@@ -1097,10 +1101,15 @@ function buildPrompt(){
 
   return`Please write a vestibular assessment report letter for Michael Sanders using the data below.
 
-NOTE: The patient's name has been replaced with [PATIENT] throughout for privacy. Use [PATIENT] as a placeholder wherever the patient's first name would appear in the report. Do not invent a name.
+NOTE: The patient's identifying details have been replaced with placeholders for privacy. Use these placeholders literally throughout — do not substitute real names or numbers:
+- [PATIENT] = patient first name (use wherever first name appears)
+- [LASTNAME] = patient last name (use in Re: line only)
+- [DOB] = date of birth
+- [NHI] = NHI number
 
 ════ PATIENT ════
-Name: [PATIENT]
+First name: [PATIENT]
+Last name: [LASTNAME]
 DOB: [DOB]
 NHI: [NHI]
 Pronoun: ${getPronoun()}
@@ -1218,9 +1227,10 @@ async function generateReport(){
 
 function deidentReplace(text){
   const fn=v('fname')||'[PATIENT]';
+  const ln=v('lname')||'[LASTNAME]';
   const dob=v('dob')?fmtDate(v('dob')):'[DOB]';
   const nhi=v('nhi')||'[NHI]';
-  return text.replaceAll('[PATIENT]',fn).replaceAll('[DOB]',dob).replaceAll('[NHI]',nhi).replaceAll('[REDACTED]',dob);
+  return text.replaceAll('[PATIENT]',fn).replaceAll('[LASTNAME]',ln).replaceAll('[DOB]',dob).replaceAll('[NHI]',nhi).replaceAll('[REDACTED]',dob);
 }
 function copyReport(){
   const text=document.getElementById('reportOut').textContent;
