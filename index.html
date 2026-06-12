@@ -1193,7 +1193,7 @@ L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—
 vHIT comment: ${v('vhitComment')||'none'}` : 'NOT PERFORMED — omit vHIT section entirely'}
 
 ════ VEMPs ════
-${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
+${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')||v('ACoVEMP-status')||v('ACoVEMP-SSCD500')||v('ACoVEMP-SSCD4k')||v('ACoVEMP-rAmplitude')||v('ACoVEMP-lAmplitude')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
 BC cVEMP: ${v('BCcVEMP-status')||'—'}, NAR: ${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}, R P1: ${v('BCcVEMP-rP1latency')||'—'}ms, L P1: ${v('BCcVEMP-lP1latency')||'—'}ms
 cVEMP comment: ${v('cVEMPcomment')||'none'}
 BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N>40%)':'—'}, R amp: ${v('BCoVEMP-rAmplitude')||'—'}µV, L amp: ${v('BCoVEMP-lAmplitude')||'—'}µV, R N1: ${v('BCoVEMP-rN1latency')||'—'}ms, L N1: ${v('BCoVEMP-lN1latency')||'—'}ms
