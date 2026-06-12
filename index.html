@@ -1466,8 +1466,8 @@ async function pushToClinico() {
 
   try {
     const body = {
-      patient_id: patientId,
-      appointment_id: apptId || null,
+      patient_id: String(patientId),
+      appointment_id: apptId ? String(apptId) : null,
       refReason: [v('refName'), v('refPractice'), v('refReason')].filter(Boolean).join(' — '),
       heidiNote: v('heidiNote') || v('sessionNotes') || '',
       eyeexam: [v('eyeexam')&&`Eye: ${v('eyeexam')}`, v('otoscopy')&&`Otoscopy: ${v('otoscopy')}`].filter(Boolean).join('\n'),
