@@ -1404,8 +1404,9 @@ async function pushToClinico() {
     return;
   }
 
-  const reportText = document.getElementById('reportOut').textContent;
-  const notesText = document.getElementById('notesPreview').innerText;
+  const reportText = document.getElementById('reportOut').textContent.trim();
+  const notesEl = document.getElementById('notesPreview');
+  const notesText = notesEl ? notesEl.innerText.trim() : '';
 
   if (!reportText && !notesText) {
     alert('Nothing to push — generate the report first.');
@@ -1417,12 +1418,18 @@ async function pushToClinico() {
   btn.disabled = true;
 
   try {
+    // Cliniko treatment notes content
+    const sections = [];
+    if (reportText) sections.push('REPORT LETTER\n\n' + reportText);
+    if (notesText) sections.push('CLINICAL NOTES\n\n' + notesText);
+    const content = sections.join('\n\n---\n\n');
+
+    // Cliniko API body — uses nested links format
     const body = {
-      patient_id: parseInt(patientId),
-      appointment_id: parseInt(apptId),
-      content: (reportText ? `REPORT LETTER\n\n${reportText}` : '') +
-               (notesText ? `\n\n---\nCLINICAL NOTES\n\n${notesText}` : ''),
-      draft: false
+      content: content,
+      draft: false,
+      patient: { links: { self: `https://api.au4.cliniko.com/v1/patients/${patientId}` } },
+      appointment: { links: { self: `https://api.au4.cliniko.com/v1/appointments/${apptId}` } }
     };
 
     const resp = await fetch(`${PROXY}/cliniko/treatment_notes`, {
@@ -1431,13 +1438,23 @@ async function pushToClinico() {
       body: JSON.stringify(body)
     });
 
+    const result = await resp.json().catch(() => ({}));
+
     if (!resp.ok) {
-      const e = await resp.json().catch(() => ({}));
-      throw new Error(e.error?.message || `Error ${resp.status}`);
+      const msg = result.errors
+        ? Object.entries(result.errors).map(([k,v]) => `${k}: ${v}`).join(', ')
+        : result.message || `HTTP ${resp.status}`;
+      throw new Error(msg);
     }
 
     btn.textContent = '✓ Pushed to Cliniko';
-    setTimeout(() => { btn.textContent = '↑ Push to Cliniko'; btn.disabled = false; }, 3000);
+    btn.style.background = 'rgba(29,158,117,0.3)';
+    setTimeout(() => {
+      btn.textContent = '↑ Push to Cliniko';
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 3000);
+
   } catch (e) {
     alert('Push failed: ' + e.message);
     btn.textContent = '↑ Push to Cliniko';
