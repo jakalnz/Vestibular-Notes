@@ -1396,11 +1396,16 @@ async function selectClinikoPatient() {
     try {
       const attResp = await fetch(`${PROXY}/cliniko/attendees?url=${encodeURIComponent(attendeesUrl)}`);
       const attData = await attResp.json();
-      const attendeeUrl = attData.attendees?.[0]?.links?.self || '';
-      document.getElementById('fname').dataset.clinikoAttendeeUrl = attendeeUrl;
-    } catch { document.getElementById('fname').dataset.clinikoAttendeeUrl = ''; }
+      const att = attData.attendees?.[0];
+      document.getElementById('fname').dataset.clinikoAttendeeUrl = att?.links?.self || '';
+      document.getElementById('fname').dataset.clinikoBookingUrl = att?.booking?.links?.self || '';
+    } catch {
+      document.getElementById('fname').dataset.clinikoAttendeeUrl = '';
+      document.getElementById('fname').dataset.clinikoBookingUrl = '';
+    }
   } else {
     document.getElementById('fname').dataset.clinikoAttendeeUrl = '';
+    document.getElementById('fname').dataset.clinikoBookingUrl = '';
   }
 
   document.getElementById('clinikoStatus').textContent = `✓ Loaded: ${patient.first_name} ${patient.last_name}`;
@@ -1426,6 +1431,7 @@ async function pushToClinico() {
     const body = {
       patientUrl,
       attendeeUrl: document.getElementById('fname').dataset.clinikoAttendeeUrl || null,
+      bookingUrl: document.getElementById('fname').dataset.clinikoBookingUrl || null,
       historyReferral: [
         v('refName') && `Referrer: ${v('refName')}${v('refPractice') ? ', '+v('refPractice') : ''}`,
         v('refReason') && `Reason: ${v('refReason')}`,
