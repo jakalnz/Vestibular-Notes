@@ -1408,89 +1408,17 @@ async function pushToClinico() {
   btn.textContent = 'Pushing…';
   btn.disabled = true;
 
-  // Helper to format tympanometry + reflexes as text
-  function tympReflexText() {
-    const lines = [];
-    if (v('lTympType')||v('rTympType')) {
-      lines.push(`Tympanometry — L: Type ${v('lTympType')||'—'} MEP:${v('lTympMEP')||'—'} Peak:${v('lTympAdm')||'—'} | R: Type ${v('rTympType')||'—'} MEP:${v('rTympMEP')||'—'} Peak:${v('rTympAdm')||'—'}`);
-    }
-    const li=[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].filter(Boolean).join('/');
-    const ri=[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].filter(Boolean).join('/');
-    if(li||ri) lines.push(`Ipsi reflexes — LI: ${li||'—'} | RI: ${ri||'—'}`);
-    const lc=[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].filter(Boolean).join('/');
-    const rc=[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].filter(Boolean).join('/');
-    if(lc||rc) lines.push(`Contra reflexes — LC: ${lc||'—'} | RC: ${rc||'—'}`);
-    return lines.join('\n');
-  }
-
-  function vhitText() {
-    const canals = [
-      ['Lateral', 'Lat'], ['Anterior', 'Ant'], ['Posterior', 'Post']
-    ].map(([name, key]) => {
-      const rg=v(`r${key}Vhit-gain`), lg=v(`l${key}Vhit-gain`);
-      const rs=v(`r${key}Vhit-state`), ls=v(`l${key}Vhit-state`);
-      if(!rg&&!lg&&!rs&&!ls) return null;
-      return `${name}: R ${rs||'—'} ${rg||'—'} | L ${ls||'—'} ${lg||'—'}`;
-    }).filter(Boolean);
-    if(v('vhitComment')) canals.push(`Comment: ${v('vhitComment')}`);
-    return canals.join('\n');
-  }
-
-  function cVempText(mode) {
-    const pre = mode==='AC' ? 'AC' : 'BC';
-    const status = v(`${pre}cVEMP-status`);
-    const nar = v(`${pre}cVEMP-NAR`);
-    const ramp = v(`${pre}cVEMP-rAmplitude`), lamp = v(`${pre}cVEMP-lAmplitude`);
-    const rp1 = v(`${pre}cVEMP-rP1latency`), lp1 = v(`${pre}cVEMP-lP1latency`);
-    if(!status&&!nar) return 'Not performed';
-    return [`Status: ${status||'—'}`, nar?`NAR: ${nar}%`:'', ramp?`R amp: ${ramp}µV`:'', lamp?`L amp: ${lamp}µV`:'', rp1?`R P1: ${rp1}ms`:'', lp1?`L P1: ${lp1}ms`:'', v('cVEMPcomment')?`Comment: ${v('cVEMPcomment')}`:''].filter(Boolean).join(' | ');
-  }
-
-  function oVempText() {
-    const bc = v('BCoVEMP-status'), ac = v('ACoVEMP-status');
-    if(!bc&&!ac) return 'Not performed';
-    const lines = [];
-    if(bc) lines.push(`BC: ${bc} AR:${v('BCoVEMP-AR')||'—'}% R:${v('BCoVEMP-rAmplitude')||'—'}µV L:${v('BCoVEMP-lAmplitude')||'—'}µV N1-R:${v('BCoVEMP-rN1latency')||'—'}ms N1-L:${v('BCoVEMP-lN1latency')||'—'}ms`);
-    if(ac) lines.push(`AC: ${ac} AR:${v('ACoVEMP-AR')||'—'}% R:${v('ACoVEMP-rAmplitude')||'—'}µV L:${v('ACoVEMP-lAmplitude')||'—'}µV SSCD500:${v('ACoVEMP-SSCD500')||'—'} SSCD4k:${v('ACoVEMP-SSCD4k')||'—'}`);
-    if(v('oVEMPcomment')) lines.push(`Comment: ${v('oVEMPcomment')}`);
-    return lines.join('\n');
-  }
-
-  function caloricText() {
-    const lines = [];
-    if(v('Caloric-status')||v('Caloric-UW')) lines.push(`Bithermal: ${v('Caloric-status')||'—'} UW: ${v('Caloric-UW')||'—'}% [N<25%]`);
-    if(v('Caloric-monoStatus')||v('Caloric-monoUW')) lines.push(`Monothermal: ${v('Caloric-monoStatus')||'—'} UW: ${v('Caloric-monoUW')||'—'}% [N<15%]`);
-    if(v('caloric-comment')) lines.push(v('caloric-comment'));
-    return lines.join('\n') || 'Not performed';
-  }
-
   try {
     const body = {
       patient_id: String(patientId),
       appointment_id: apptId ? String(apptId) : null,
-      refReason: [v('refName'), v('refPractice'), v('refReason')].filter(Boolean).join(' — '),
-      heidiNote: v('heidiNote') || v('sessionNotes') || '',
-      eyeexam: [v('eyeexam')&&`Eye: ${v('eyeexam')}`, v('otoscopy')&&`Otoscopy: ${v('otoscopy')}`].filter(Boolean).join('\n'),
-      tympReflexes: tympReflexText(),
-      audiometry: v('audiometry') || 'Not performed',
-      vhit: vhitText() || 'Not performed',
-      acCvemp: cVempText('AC'),
-      bcCvemp: cVempText('BC'),
-      acOvemp: oVempText(),
-      saccades: v('saccade-comment') || '',
-      gazeCenter: [v('Gaze_C-GE'), v('Gaze_C-S')].filter(Boolean).join(' / '),
-      gazeRight: [v('Gaze_R-GE'), v('Gaze_R-S')].filter(Boolean).join(' / '),
-      gazeLeft: [v('Gaze_L-GE'), v('Gaze_L-S')].filter(Boolean).join(' / '),
-      okn: v('OKN') || '',
-      tracking: v('Tracking') || '',
-      svin: v('svinResult') || '',
-      rDHP: [v('rDHP-result'), v('rDHP-comment')].filter(Boolean).join(' — '),
-      lDHP: [v('lDHP-result'), v('lDHP-comment')].filter(Boolean).join(' — '),
-      rRoll: [v('rRoll-result'), v('rRoll-comment')].filter(Boolean).join(' — '),
-      lRoll: [v('lRoll-result'), v('lRoll-comment')].filter(Boolean).join(' — '),
-      spontaneous: v('30degSpont') || '',
-      caloric: caloricText(),
-      vngNotes: v('vngComment') || ''
+      historyReferral: [
+        v('refName') && `Referrer: ${v('refName')}${v('refPractice') ? ', '+v('refPractice') : ''}`,
+        v('refReason') && `Reason: ${v('refReason')}`,
+        v('heidiNote') || v('sessionNotes')
+      ].filter(Boolean).join('\n\n'),
+      testResults: document.getElementById('notesPreview')?.innerText?.trim() || '',
+      reportLetter: document.getElementById('reportOut')?.textContent?.trim() || ''
     };
 
     const resp = await fetch(`${PROXY}/cliniko/treatment_notes`, {
