@@ -1356,7 +1356,7 @@ async function loadClinikoAppointments() {
   btn.disabled = false;
 }
 
-function selectClinikoPatient() {
+async function selectClinikoPatient() {
   const val = document.getElementById('clinikoApptSelect').value;
   if (!val) return;
   const { appt, patient } = JSON.parse(val);
@@ -1387,8 +1387,21 @@ function selectClinikoPatient() {
   if (referrer) document.getElementById('refName').value = referrer;
 
   // Store Cliniko IDs for later push-back
-  document.getElementById('fname').dataset.clinikoPatientId = patient.id;
-  document.getElementById('fname').dataset.clinikoApptId = appt.id;
+  document.getElementById('fname').dataset.clinikoPatientUrl = patient.links?.self || `https://api.au4.cliniko.com/v1/patients/${patient.id}`;
+  document.getElementById('fname').dataset.clinikoApptUrl = appt.links?.self || '';
+
+  // Fetch attendee URL from the attendees collection
+  const attendeesUrl = appt.attendees?.links?.self;
+  if (attendeesUrl) {
+    try {
+      const attResp = await fetch(`${PROXY}/cliniko/attendees?url=${encodeURIComponent(attendeesUrl)}`);
+      const attData = await attResp.json();
+      const attendeeUrl = attData.attendees?.[0]?.links?.self || '';
+      document.getElementById('fname').dataset.clinikoAttendeeUrl = attendeeUrl;
+    } catch { document.getElementById('fname').dataset.clinikoAttendeeUrl = ''; }
+  } else {
+    document.getElementById('fname').dataset.clinikoAttendeeUrl = '';
+  }
 
   document.getElementById('clinikoStatus').textContent = `✓ Loaded: ${patient.first_name} ${patient.last_name}`;
   updatePreview();
@@ -1396,10 +1409,11 @@ function selectClinikoPatient() {
 
 // ── PUSH TO CLINIKO ──
 async function pushToClinico() {
-  const patientId = document.getElementById('fname').dataset.clinikoPatientId;
-  const apptId = document.getElementById('fname').dataset.clinikoApptId;
+  const patientUrl = document.getElementById('fname').dataset.clinikoPatientUrl;
+  const bookingUrl = document.getElementById('fname').dataset.clinikoBookingUrl;
+  const attendeeUrl = document.getElementById('fname').dataset.clinikoAttendeeUrl;
 
-  if (!patientId) {
+  if (!patientUrl) {
     alert('No Cliniko patient loaded — please load a patient from the Cliniko panel first.');
     return;
   }
@@ -1410,8 +1424,8 @@ async function pushToClinico() {
 
   try {
     const body = {
-      patient_id: String(patientId),
-      appointment_id: apptId ? String(apptId) : null,
+      patientUrl,
+      attendeeUrl: document.getElementById('fname').dataset.clinikoAttendeeUrl || null,
       historyReferral: [
         v('refName') && `Referrer: ${v('refName')}${v('refPractice') ? ', '+v('refPractice') : ''}`,
         v('refReason') && `Reason: ${v('refReason')}`,
