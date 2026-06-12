@@ -1447,8 +1447,8 @@ async function pushToClinico() {
     // Tympanometry
     if(has('lTympType','rTympType','lTympMEP','rTympMEP')){
       findings.push(secHead('Tympanometry'));
-      if(val('lTympType')) findings.push(row('Left', `Type ${val('lTympType')}${val('lTympMEP')?' MEP '+val('lTympMEP')+'daPa':''}${val('lTympAdm')?' Peak '+val('lTympAdm')+'mho':''}`));
-      if(val('rTympType')) findings.push(row('Right', `Type ${val('rTympType')}${val('rTympMEP')?' MEP '+val('rTympMEP')+'daPa':''}${val('rTympAdm')?' Peak '+val('rTympAdm')+'mho':''}`));
+      if(val('lTympType')) findings.push(row('Left', `Type ${val('lTympType')}${val('lTympMEP')?' MEP '+val('lTympMEP')+'daPa':''}${val('lTympAdm')?' Peak '+val('lTympAdm')+'mho':''}${val('lTympVol')?' Vol '+val('lTympVol')+'ml':''}`));
+      if(val('rTympType')) findings.push(row('Right', `Type ${val('rTympType')}${val('rTympMEP')?' MEP '+val('rTympMEP')+'daPa':''}${val('rTympAdm')?' Peak '+val('rTympAdm')+'mho':''}${val('rTympVol')?' Vol '+val('rTympVol')+'ml':''}`));
       findings.push('');
     }
 
@@ -1466,6 +1466,17 @@ async function pushToClinico() {
       findings.push('');
     }
 
+    function chk(id){ const el=document.getElementById(id); return el?el.checked:false; }
+    function sacStr(side){
+      if(!chk(side+'Vhit-saccades')) return 'no saccades';
+      const parts=['saccades present'];
+      if(val(side+'Vhit-saccadeSize')) parts.push(val(side+'Vhit-saccadeSize'));
+      if(val(side+'Vhit-saccadeLatency')) parts.push(val(side+'Vhit-saccadeLatency'));
+      if(val(side+'Vhit-saccadeGrouping')) parts.push(val(side+'Vhit-saccadeGrouping'));
+      if(val(side+'Vhit-saccadePR')) parts.push('PR '+val(side+'Vhit-saccadePR')+'%');
+      return parts.join(', ');
+    }
+
     // vHIT
     const canals=[['Lateral','Lat'],['Anterior','Ant'],['Posterior','Post']];
     const vhitLines=[];
@@ -1473,7 +1484,8 @@ async function pushToClinico() {
       const rg=val(`r${key}Vhit-gain`),lg=val(`l${key}Vhit-gain`);
       const rs=val(`r${key}Vhit-state`),ls=val(`l${key}Vhit-state`);
       if(rg||lg||rs||ls){
-        vhitLines.push(`${name}: R ${rs||'—'} ${rg?'gain '+rg:''} | L ${ls||'—'} ${lg?'gain '+lg:''}`);
+        const rSac=sacStr('r'+key), lSac=sacStr('l'+key);
+        vhitLines.push(`${name} — R: ${rs||'—'} ${rg?'gain '+rg:''} ${rSac} | L: ${ls||'—'} ${lg?'gain '+lg:''} ${lSac}`);
       }
     });
     if(vhitLines.length){ findings.push(secHead('Video Head Impulse Testing (vHIT)')); findings.push(...vhitLines); if(val('vhitComment')) findings.push(row('Comment',val('vhitComment'))); findings.push(''); }
@@ -1483,7 +1495,7 @@ async function pushToClinico() {
     if(val('ACcVEMP-status')) cvempLines.push(`AC cVEMP: ${val('ACcVEMP-status')}${val('ACcVEMP-NAR')?' NAR: '+val('ACcVEMP-NAR')+'%':''}${val('ACcVEMP-rP1latency')?' R-P1: '+val('ACcVEMP-rP1latency')+'ms':''}${val('ACcVEMP-lP1latency')?' L-P1: '+val('ACcVEMP-lP1latency')+'ms':''}`);
     if(val('BCcVEMP-status')) cvempLines.push(`BC cVEMP: ${val('BCcVEMP-status')}${val('BCcVEMP-NAR')?' NAR: '+val('BCcVEMP-NAR')+'%':''}${val('BCcVEMP-rP1latency')?' R-P1: '+val('BCcVEMP-rP1latency')+'ms':''}${val('BCcVEMP-lP1latency')?' L-P1: '+val('BCcVEMP-lP1latency')+'ms':''}`);
     if(val('BCoVEMP-status')) cvempLines.push(`BC oVEMP: ${val('BCoVEMP-status')}${val('BCoVEMP-AR')?' AR: '+val('BCoVEMP-AR')+'%':''}${val('BCoVEMP-rAmplitude')?' R: '+val('BCoVEMP-rAmplitude')+'µV':''}${val('BCoVEMP-lAmplitude')?' L: '+val('BCoVEMP-lAmplitude')+'µV':''}${val('BCoVEMP-rN1latency')?' R-N1: '+val('BCoVEMP-rN1latency')+'ms':''}${val('BCoVEMP-lN1latency')?' L-N1: '+val('BCoVEMP-lN1latency')+'ms':''}`);
-    if(val('ACoVEMP-status')) cvempLines.push(`AC oVEMP: ${val('ACoVEMP-status')}${val('ACoVEMP-AR')?' AR: '+val('ACoVEMP-AR')+'%':''}${val('ACoVEMP-SSCD500')?' SSCD 500Hz: '+val('ACoVEMP-SSCD500'):''}${val('ACoVEMP-SSCD4k')?' SSCD 4kHz: '+val('ACoVEMP-SSCD4k'):''}`);
+    if(val('ACoVEMP-status')) cvempLines.push(`AC oVEMP: ${val('ACoVEMP-status')}${val('ACoVEMP-AR')?' AR: '+val('ACoVEMP-AR')+'%':''}${val('ACoVEMP-rAmplitude')?' R: '+val('ACoVEMP-rAmplitude')+'µV':''}${val('ACoVEMP-lAmplitude')?' L: '+val('ACoVEMP-lAmplitude')+'µV':''}${val('ACoVEMP-SSCD500')?' SSCD 500Hz: '+val('ACoVEMP-SSCD500'):''}${val('ACoVEMP-SSCD4k')?' SSCD 4kHz: '+val('ACoVEMP-SSCD4k'):''}`);
     if(cvempLines.length){ findings.push(secHead('Vestibular Evoked Myogenic Potentials')); findings.push(...cvempLines); if(val('cVEMPcomment')) findings.push(row('cVEMP note',val('cVEMPcomment'))); if(val('oVEMPcomment')) findings.push(row('oVEMP note',val('oVEMPcomment'))); findings.push(''); }
 
     // Oculomotor
@@ -1498,17 +1510,15 @@ async function pushToClinico() {
     if(val('OKN')) oculoLines.push(row('OKN',val('OKN')));
     if(val('Tracking')) oculoLines.push(row('Tracking',val('Tracking')));
     if(val('svinResult')) oculoLines.push(row('SVIN',val('svinResult')));
-    if(oculoLines.length){ findings.push(secHead('Oculomotor Testing')); findings.push(...oculoLines); if(val('vngComment')) findings.push(row('VNG note',val('vngComment'))); findings.push(''); }
+    if(oculoLines.length){ findings.push(secHead('Oculomotor Testing')); findings.push(...oculoLines); if(val('otherTests')) findings.push(row('Other tests',val('otherTests'))); if(val('vngComment')) findings.push(row('VNG note',val('vngComment'))); findings.push(''); }
 
     // Positional
     const posLines=[];
-    ['rDHP','lDHP','rRoll','lRoll'].forEach(key=>{
+    [['rDHP','R Dix-Hallpike'],['lDHP','L Dix-Hallpike'],['rRoll','R Roll'],['lRoll','L Roll']].forEach(([key,label])=>{
       const result=val(key+'-result'), comment=val(key+'-comment');
-      const label=key==='rDHP'?'R Dix-Hallpike':key==='lDHP'?'L Dix-Hallpike':key==='rRoll'?'R Roll':'L Roll';
-      if(result&&result!=='Negative'||comment) posLines.push(row(label,[result,comment].filter(Boolean).join(' — ')));
-      else if(result==='Negative') posLines.push(row(label,'Negative'));
+      if(result||comment) posLines.push(row(label,[result,comment].filter(Boolean).join(' — ')));
     });
-    if(val('bow-lean-result')) posLines.push(row('Bow &amp; Lean',[val('bow-lean-result'),val('bow-lean-comment')].filter(Boolean).join(' — ')));
+    if(val('bow-lean-result')) posLines.push(row('Bow & Lean',[val('bow-lean-result'),val('bow-lean-comment')].filter(Boolean).join(' — ')));
     if(posLines.length){ findings.push(secHead('Positional Testing')); findings.push(...posLines); findings.push(''); }
 
     // Caloric
