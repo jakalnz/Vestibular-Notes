@@ -1428,17 +1428,110 @@ async function pushToClinico() {
   btn.disabled = true;
 
   try {
+    // ── Build structured findings HTML ──
+    function val(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+    function has(...ids){ return ids.some(id=>val(id)); }
+    function row(label,value){ return value?`${label}: ${value}`:''; }
+    function secHead(title){ return `=== ${title} ===`; }
+
+    const findings = [];
+
+    // Pre-assessment
+    const preLines = [
+      val('eyeexam') && row('Eye exam', val('eyeexam')),
+      val('otoscopy') && row('Otoscopy', val('otoscopy')),
+      val('audiometry') && row('Audiometry', val('audiometry')),
+    ].filter(Boolean);
+    if(preLines.length){ findings.push(secHead('Pre-Assessment')); findings.push(...preLines); findings.push(''); }
+
+    // Tympanometry
+    if(has('lTympType','rTympType','lTympMEP','rTympMEP')){
+      findings.push(secHead('Tympanometry'));
+      if(val('lTympType')) findings.push(row('Left', `Type ${val('lTympType')}${val('lTympMEP')?' MEP '+val('lTympMEP')+'daPa':''}${val('lTympAdm')?' Peak '+val('lTympAdm')+'mho':''}`));
+      if(val('rTympType')) findings.push(row('Right', `Type ${val('rTympType')}${val('rTympMEP')?' MEP '+val('rTympMEP')+'daPa':''}${val('rTympAdm')?' Peak '+val('rTympAdm')+'mho':''}`));
+      findings.push('');
+    }
+
+    // Acoustic reflexes
+    const liStr=[val('lARTi500'),val('lARTi1000'),val('lARTi2000')].filter(Boolean).join(' / ');
+    const riStr=[val('rARTi500'),val('rARTi1000'),val('rARTi2000')].filter(Boolean).join(' / ');
+    const lcStr=[val('lARTc500'),val('lARTc1000'),val('lARTc2000')].filter(Boolean).join(' / ');
+    const rcStr=[val('rARTc500'),val('rARTc1000'),val('rARTc2000')].filter(Boolean).join(' / ');
+    if(liStr||riStr||lcStr||rcStr){
+      findings.push(secHead('Acoustic Reflexes (0.5 / 1 / 2 kHz)'));
+      if(liStr) findings.push(row('L ipsi', liStr));
+      if(riStr) findings.push(row('R ipsi', riStr));
+      if(lcStr) findings.push(row('L contra', lcStr));
+      if(rcStr) findings.push(row('R contra', rcStr));
+      findings.push('');
+    }
+
+    // vHIT
+    const canals=[['Lateral','Lat'],['Anterior','Ant'],['Posterior','Post']];
+    const vhitLines=[];
+    canals.forEach(([name,key])=>{
+      const rg=val(`r${key}Vhit-gain`),lg=val(`l${key}Vhit-gain`);
+      const rs=val(`r${key}Vhit-state`),ls=val(`l${key}Vhit-state`);
+      if(rg||lg||rs||ls){
+        vhitLines.push(`${name}: R ${rs||'—'} ${rg?'gain '+rg:''} | L ${ls||'—'} ${lg?'gain '+lg:''}`);
+      }
+    });
+    if(vhitLines.length){ findings.push(secHead('Video Head Impulse Testing (vHIT)')); findings.push(...vhitLines); if(val('vhitComment')) findings.push(row('Comment',val('vhitComment'))); findings.push(''); }
+
+    // VEMPs
+    const cvempLines=[];
+    if(val('ACcVEMP-status')) cvempLines.push(`AC cVEMP: ${val('ACcVEMP-status')}${val('ACcVEMP-NAR')?' NAR: '+val('ACcVEMP-NAR')+'%':''}${val('ACcVEMP-rP1latency')?' R-P1: '+val('ACcVEMP-rP1latency')+'ms':''}${val('ACcVEMP-lP1latency')?' L-P1: '+val('ACcVEMP-lP1latency')+'ms':''}`);
+    if(val('BCcVEMP-status')) cvempLines.push(`BC cVEMP: ${val('BCcVEMP-status')}${val('BCcVEMP-NAR')?' NAR: '+val('BCcVEMP-NAR')+'%':''}${val('BCcVEMP-rP1latency')?' R-P1: '+val('BCcVEMP-rP1latency')+'ms':''}${val('BCcVEMP-lP1latency')?' L-P1: '+val('BCcVEMP-lP1latency')+'ms':''}`);
+    if(val('BCoVEMP-status')) cvempLines.push(`BC oVEMP: ${val('BCoVEMP-status')}${val('BCoVEMP-AR')?' AR: '+val('BCoVEMP-AR')+'%':''}${val('BCoVEMP-rAmplitude')?' R: '+val('BCoVEMP-rAmplitude')+'µV':''}${val('BCoVEMP-lAmplitude')?' L: '+val('BCoVEMP-lAmplitude')+'µV':''}${val('BCoVEMP-rN1latency')?' R-N1: '+val('BCoVEMP-rN1latency')+'ms':''}${val('BCoVEMP-lN1latency')?' L-N1: '+val('BCoVEMP-lN1latency')+'ms':''}`);
+    if(val('ACoVEMP-status')) cvempLines.push(`AC oVEMP: ${val('ACoVEMP-status')}${val('ACoVEMP-AR')?' AR: '+val('ACoVEMP-AR')+'%':''}${val('ACoVEMP-SSCD500')?' SSCD 500Hz: '+val('ACoVEMP-SSCD500'):''}${val('ACoVEMP-SSCD4k')?' SSCD 4kHz: '+val('ACoVEMP-SSCD4k'):''}`);
+    if(cvempLines.length){ findings.push(secHead('Vestibular Evoked Myogenic Potentials')); findings.push(...cvempLines); if(val('cVEMPcomment')) findings.push(row('cVEMP note',val('cVEMPcomment'))); if(val('oVEMPcomment')) findings.push(row('oVEMP note',val('oVEMPcomment'))); findings.push(''); }
+
+    // Oculomotor
+    const oculoLines=[];
+    if(val('saccade-comment')) oculoLines.push(row('Saccades',val('saccade-comment')));
+    const gazeC=[val('Gaze_C-GE'),val('Gaze_C-S')].filter(Boolean).join(' / vision denied: ');
+    const gazeR=[val('Gaze_R-GE'),val('Gaze_R-S')].filter(Boolean).join(' / vision denied: ');
+    const gazeL=[val('Gaze_L-GE'),val('Gaze_L-S')].filter(Boolean).join(' / vision denied: ');
+    if(gazeC) oculoLines.push(row('Gaze centre',gazeC));
+    if(gazeR) oculoLines.push(row('Gaze right',gazeR));
+    if(gazeL) oculoLines.push(row('Gaze left',gazeL));
+    if(val('OKN')) oculoLines.push(row('OKN',val('OKN')));
+    if(val('Tracking')) oculoLines.push(row('Tracking',val('Tracking')));
+    if(val('svinResult')) oculoLines.push(row('SVIN',val('svinResult')));
+    if(oculoLines.length){ findings.push(secHead('Oculomotor Testing')); findings.push(...oculoLines); if(val('vngComment')) findings.push(row('VNG note',val('vngComment'))); findings.push(''); }
+
+    // Positional
+    const posLines=[];
+    ['rDHP','lDHP','rRoll','lRoll'].forEach(key=>{
+      const result=val(key+'-result'), comment=val(key+'-comment');
+      const label=key==='rDHP'?'R Dix-Hallpike':key==='lDHP'?'L Dix-Hallpike':key==='rRoll'?'R Roll':'L Roll';
+      if(result&&result!=='Negative'||comment) posLines.push(row(label,[result,comment].filter(Boolean).join(' — ')));
+      else if(result==='Negative') posLines.push(row(label,'Negative'));
+    });
+    if(val('bow-lean-result')) posLines.push(row('Bow &amp; Lean',[val('bow-lean-result'),val('bow-lean-comment')].filter(Boolean).join(' — ')));
+    if(posLines.length){ findings.push(secHead('Positional Testing')); findings.push(...posLines); findings.push(''); }
+
+    // Caloric
+    const caloricLines=[];
+    if(val('Caloric-status')||val('Caloric-UW')) caloricLines.push(`Bithermal: ${val('Caloric-status')||'—'}${val('Caloric-UW')?' UW: '+val('Caloric-UW')+'% [N &lt;25%]':''}`);
+    if(val('Caloric-monoStatus')||val('Caloric-monoUW')) caloricLines.push(`Monothermal: ${val('Caloric-monoStatus')||'—'}${val('Caloric-monoUW')?' UW: '+val('Caloric-monoUW')+'% [N &lt;15%]':''}`);
+    if(val('30degSpont')) caloricLines.push(row('Spontaneous nystagmus',val('30degSpont')));
+    if(val('caloric-comment')) caloricLines.push(row('Comment',val('caloric-comment')));
+    if(caloricLines.length){ findings.push(secHead('Caloric Testing')); findings.push(...caloricLines); findings.push(''); }
+
+    const testResultsHtml = findings.map(line=>line===''?'<br>':'<div>'+line+'</div>').join('');
+
     const body = {
       patientUrl,
       attendeeUrl: document.getElementById('fname').dataset.clinikoAttendeeUrl || null,
       bookingUrl: document.getElementById('fname').dataset.clinikoBookingUrl || null,
       historyReferral: [
-        v('refName') && `Referrer: ${v('refName')}${v('refPractice') ? ', '+v('refPractice') : ''}`,
-        v('refReason') && `Reason: ${v('refReason')}`,
-        v('heidiNote') || v('sessionNotes')
-      ].filter(Boolean).join('\n\n'),
-      testResults: document.getElementById('notesPreview')?.innerText?.trim() || '',
-      reportLetter: document.getElementById('reportOut')?.textContent?.trim() || ''
+        val('refName') && `<div>Referrer: ${val('refName')}${val('refPractice') ? ', '+val('refPractice') : ''}</div>`,
+        val('refReason') && `<div>Reason: ${val('refReason')}</div>`,
+        (val('heidiNote')||val('sessionNotes')) && `<br><div>${(val('heidiNote')||val('sessionNotes')).split('\n').map(l=>`<div>${l||'&nbsp;'}</div>`).join('')}</div>`
+      ].filter(Boolean).join(''),
+      testResults: testResultsHtml,
+      reportLetter: (document.getElementById('reportOut')?.textContent?.trim()||'').split('\n').map(l=>`<div>${l||'&nbsp;'}</div>`).join('')
     };
 
     const resp = await fetch(`${PROXY}/cliniko/treatment_notes`, {
