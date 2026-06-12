@@ -180,6 +180,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
     <input type="text" id="clinician" placeholder="Clinician ID">
     <button class="hdr-btn btn-notes" onclick="switchOutput('notes')">📋 Preview Notes</button>
     <button class="hdr-btn btn-report" onclick="switchOutput('report')">✉ Generate Report</button>
+    <button class="hdr-btn btn-send" id="clinikoPushBtn" onclick="pushToClinico()">↑ Push to Cliniko</button>
     <button class="hdr-btn btn-send" onclick="sendToSheets()">↑ Save to Sheets</button>
   </div>
 </div>
@@ -199,6 +200,24 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 
 <!-- PATIENT TAB -->
 <div id="tPatient" class="tab-panel active">
+
+  <!-- CLINIKO OPTIONAL PANEL -->
+  <div class="fsec" style="border-color:#BFDBFE;background:#F0F7FF;">
+    <div class="fsec-title" style="color:#1E40AF;">Cliniko <span style="font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint);">— optional, load today's patients</span></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <button onclick="loadClinikoAppointments()" id="clinikoLoadBtn" style="padding:6px 14px;background:#1E40AF;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;transition:background 0.15s;" onmouseover="this.style.background='#1D4ED8'" onmouseout="this.style.background='#1E40AF'">
+        Load Today's Patients
+      </button>
+      <span id="clinikoStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;"></span>
+    </div>
+    <div id="clinikoApptList" style="display:none;">
+      <label>Select patient</label>
+      <select id="clinikoApptSelect" onchange="selectClinikoPatient()" style="margin-bottom:0;">
+        <option value="">— select appointment —</option>
+      </select>
+    </div>
+    <div id="clinikoError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
+  </div>
   <div class="fsec">
     <div class="fsec-title">Patient Details</div>
     <div class="frow fc2">
@@ -1273,6 +1292,157 @@ function sendToSheets(){
   ];
   fields.forEach(f=>{const el=document.getElementById('sf-'+f);if(el)el.value=v(f);});
   document.getElementById('sf-submit').click();
+}
+
+// ── CLINIKO INTEGRATION ──
+const PROXY = 'https://patient-breeze-ddf7.mpsanders.workers.dev';
+
+async function loadClinikoAppointments() {
+  const btn = document.getElementById('clinikoLoadBtn');
+  const status = document.getElementById('clinikoStatus');
+  const errBox = document.getElementById('clinikoError');
+  const list = document.getElementById('clinikoApptList');
+  errBox.style.display = 'none';
+  btn.textContent = 'Loading…';
+  btn.disabled = true;
+  status.textContent = '';
+
+  try {
+    const resp = await fetch(`${PROXY}/cliniko/appointments`);
+    if (!resp.ok) throw new Error(`Cliniko error ${resp.status}`);
+    const data = await resp.json();
+    const appts = data.appointments || [];
+
+    if (appts.length === 0) {
+      status.textContent = 'No appointments found for today.';
+      btn.textContent = 'Load Today\'s Patients';
+      btn.disabled = false;
+      return;
+    }
+
+    const select = document.getElementById('clinikoApptSelect');
+    select.innerHTML = '<option value="">— select appointment —</option>';
+
+    // Fetch patient names for each appointment
+    const patientFetches = appts.map(async appt => {
+      const patientId = appt.patient?.links?.self?.split('/').pop()
+        || appt.patient_id;
+      if (!patientId) return null;
+      try {
+        const pr = await fetch(`${PROXY}/cliniko/patients/${patientId}`);
+        const pd = await pr.json();
+        return { appt, patient: pd };
+      } catch { return null; }
+    });
+
+    const results = (await Promise.all(patientFetches)).filter(Boolean);
+
+    results.forEach(({ appt, patient }) => {
+      const time = new Date(appt.starts_at).toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' });
+      const name = `${patient.first_name} ${patient.last_name}`;
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({ appt, patient });
+      opt.textContent = `${time} — ${name}`;
+      select.appendChild(opt);
+    });
+
+    list.style.display = 'block';
+    status.textContent = `${results.length} appointment${results.length !== 1 ? 's' : ''} loaded`;
+  } catch (e) {
+    errBox.textContent = 'Could not load from Cliniko: ' + e.message;
+    errBox.style.display = 'block';
+  }
+  btn.textContent = 'Refresh';
+  btn.disabled = false;
+}
+
+function selectClinikoPatient() {
+  const val = document.getElementById('clinikoApptSelect').value;
+  if (!val) return;
+  const { appt, patient } = JSON.parse(val);
+
+  // Fill patient fields
+  document.getElementById('fname').value = patient.first_name || '';
+  document.getElementById('lname').value = patient.last_name || '';
+
+  // DOB
+  if (patient.date_of_birth) {
+    document.getElementById('dob').value = patient.date_of_birth.split('T')[0];
+  }
+
+  // NHI — stored in patient_id_number or custom fields
+  const nhi = patient.patient_id || patient.medicare_number || '';
+  document.getElementById('nhi').value = nhi;
+
+  // Sex/pronoun
+  if (patient.sex) {
+    const sex = patient.sex.toLowerCase();
+    if (sex === 'male' || sex === 'm') document.getElementById('pronoun').value = 'male';
+    else if (sex === 'female' || sex === 'f') document.getElementById('pronoun').value = 'female';
+    else document.getElementById('pronoun').value = 'unspecified';
+  }
+
+  // Referrer — from appointment notes or referring doctor
+  const referrer = appt.practitioner?.display_name || '';
+  if (referrer) document.getElementById('refName').value = referrer;
+
+  // Store Cliniko IDs for later push-back
+  document.getElementById('fname').dataset.clinikoPatientId = patient.id;
+  document.getElementById('fname').dataset.clinikoApptId = appt.id;
+
+  document.getElementById('clinikoStatus').textContent = `✓ Loaded: ${patient.first_name} ${patient.last_name}`;
+  updatePreview();
+}
+
+// ── PUSH TO CLINIKO ──
+async function pushToClinico() {
+  const patientId = document.getElementById('fname').dataset.clinikoPatientId;
+  const apptId = document.getElementById('fname').dataset.clinikoApptId;
+
+  if (!patientId) {
+    alert('No Cliniko patient loaded — please load a patient from the Cliniko panel first.');
+    return;
+  }
+
+  const reportText = document.getElementById('reportOut').textContent;
+  const notesText = document.getElementById('notesPreview').innerText;
+
+  if (!reportText && !notesText) {
+    alert('Nothing to push — generate the report first.');
+    return;
+  }
+
+  const btn = document.getElementById('clinikoPushBtn');
+  btn.textContent = 'Pushing…';
+  btn.disabled = true;
+
+  try {
+    const body = {
+      patient_id: parseInt(patientId),
+      appointment_id: parseInt(apptId),
+      content: (reportText ? `REPORT LETTER\n\n${reportText}` : '') +
+               (notesText ? `\n\n---\nCLINICAL NOTES\n\n${notesText}` : ''),
+      draft: false
+    };
+
+    const resp = await fetch(`${PROXY}/cliniko/treatment_notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const e = await resp.json().catch(() => ({}));
+      throw new Error(e.error?.message || `Error ${resp.status}`);
+    }
+
+    btn.textContent = '✓ Pushed to Cliniko';
+    setTimeout(() => { btn.textContent = '↑ Push to Cliniko'; btn.disabled = false; }, 3000);
+  } catch (e) {
+    alert('Push failed: ' + e.message);
+    btn.textContent = '↑ Push to Cliniko';
+    btn.disabled = false;
+  }
 }
 
 // Set today's date
