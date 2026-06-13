@@ -231,7 +231,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
       <button onclick="loadNookalAppointments()" id="nookalLoadBtn"
         style="padding:6px 14px;background:#065F46;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;transition:background 0.15s;"
         onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065F46'">
-        Load Today's Patients
+        Load Upcoming Patients
       </button>
       <span id="nookalStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;white-space:nowrap;"></span>
     </div>
@@ -1695,38 +1695,39 @@ async function loadNookalAppointments(){
     const appts = data.appointments || [];
 
     if(appts.length === 0){
-      status.textContent = 'No appointments found for today.';
+      status.textContent = 'No upcoming appointments found.';
       btn.textContent = 'Refresh'; btn.disabled = false;
       list.style.display = 'none';
       return;
     }
 
-    // Resolve patient names for each appointment
-    const fetches = appts.map(async a=>{
-      const pid = a.patientID;
-      if(!pid) return null;
-      try{
-        const pr = await fetch(`${PROXY}/nookal/patient?patient_id=${pid}`);
-        const pd = await pr.json();
-        return { appt:a, patient: pd.patient };
-      }catch{ return null; }
-    });
-    const results = (await Promise.all(fetches)).filter(r=>r && r.patient);
+    // Patient data is pre-resolved by the worker — no individual fetches needed
+    const results = appts
+      .filter(a => a.patient)
+      .map(a => ({ appt: a, patient: a.patient }));
 
     const select = document.getElementById('nookalApptSelect');
     select.innerHTML = '<option value="">— select appointment —</option>';
     results
-      .sort((x,y)=>(x.appt.appointmentStartTime||'').localeCompare(y.appt.appointmentStartTime||''))
+      .sort((x,y)=>{
+        const ak = (x.appt.appointmentDate||'') + (x.appt.appointmentStartTime||'');
+        const bk = (y.appt.appointmentDate||'') + (y.appt.appointmentStartTime||'');
+        return ak.localeCompare(bk);
+      })
+      .slice(0, 10)
       .forEach(({appt,patient})=>{
         const time = (appt.appointmentStartTime||'').slice(0,5);
+        const dateStr = appt.appointmentDate
+          ? new Date(appt.appointmentDate + 'T00:00:00').toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short'})
+          : '';
         const opt = document.createElement('option');
         opt.value = JSON.stringify({ appt, patient });
-        opt.textContent = `${time} — ${patient.FirstName} ${patient.LastName}`;
+        opt.textContent = dateStr ? `${dateStr} ${time} — ${patient.FirstName} ${patient.LastName}` : `${time} — ${patient.FirstName} ${patient.LastName}`;
         select.appendChild(opt);
       });
 
     list.style.display = 'block';
-    status.textContent = `${results.length} appointment${results.length!==1?'s':''} loaded`;
+    status.textContent = `${Math.min(results.length,10)} of ${results.length} upcoming appointment${results.length!==1?'s':''} shown`;
   }catch(e){
     errBox.textContent = 'Could not load from Nookal: ' + e.message;
     errBox.style.display = 'block';
@@ -1762,8 +1763,17 @@ async function searchNookalPatients(){
     const resp = await fetch(`${PROXY}/nookal/search?${params}`);
     if(!resp.ok) throw new Error(`Search error ${resp.status}`);
     const data = await resp.json();
-    const patients = data?.data?.results?.patients || [];
-    if(patients.length === 0){ status.textContent='No patients found.'; btn.textContent='Search'; btn.disabled=false; return; }
+    // Try multiple response paths in case Nookal's search structure differs from getPatients
+    const patients = data?.data?.results?.patients
+      || data?.data?.patients
+      || data?.results?.patients
+      || data?.patients
+      || [];
+    if(patients.length === 0){
+      const errDetail = data?.details?.errorMessage || data?.message || data?.status || '';
+      status.textContent = errDetail ? `No patients found (${errDetail})` : 'No patients found.';
+      btn.textContent='Search'; btn.disabled=false; return;
+    }
 
     const select = document.getElementById('nookalPatientSelect');
     select.innerHTML = '<option value="">— select patient —</option>';
@@ -1959,8 +1969,10 @@ async function pushToNookal(){
     const failure = result?.status === 'failure' || result?.status === false || result?.status === 'false' || result?.data?.status === false;
     const successNote = result?.data?.results?.note_id != null;
     if (!resp.ok || failure || !successNote) {
-      const details = result?.details?.errorMessage || result?.details?.error_description || result?.data?.message || result?.message || result?.error || JSON.stringify(result);
-      throw new Error(`Nookal addTreatmentNote failed: ${details}`);
+      const details = result?.details?.errorMessage || result?.details?.error_description || result?.data?.message || result?.message || result?.error || '';
+      const debug = result?._debug ? ` [sent: ${(result._debug.sentFields||[]).join(',')} status:${result._debug.nookalStatus}]` : '';
+      const raw = (!details && !debug) ? ' ' + JSON.stringify(result) : '';
+      throw new Error(`Nookal addTreatmentNote failed: ${details}${debug}${raw}`);
     }
 
     console.log('Nookal note created:', result);
