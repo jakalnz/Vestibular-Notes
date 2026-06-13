@@ -181,6 +181,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
     <button class="hdr-btn btn-notes" onclick="switchOutput('notes')">📋 Preview Notes</button>
     <button class="hdr-btn btn-report" onclick="switchOutput('report')">✉ Generate Report</button>
     <button class="hdr-btn btn-send" id="clinikoPushBtn" onclick="pushToClinico()">↑ Push to Cliniko</button>
+    <button class="hdr-btn btn-send" id="nookalPushBtn" onclick="pushToNookal()">↑ Push to Nookal</button>
     <button class="hdr-btn btn-send" onclick="sendToSheets()">↑ Save to Sheets</button>
   </div>
 </div>
@@ -217,6 +218,27 @@ input.chk-sac{width:auto!important;margin-right:4px;}
       </select>
     </div>
     <div id="clinikoError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
+  </div>
+  <!-- NOOKAL OPTIONAL PANEL -->
+  <div class="fsec" style="border-color:#6EE7B7;background:#ECFDF5;">
+    <div class="fsec-title" style="color:#065F46;">Nookal <span style="font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint);">— optional, search patient by name</span></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input type="text" id="nookalFname" placeholder="First name" style="flex:1;background:#fff;">
+      <input type="text" id="nookalLname" placeholder="Last name" style="flex:1;background:#fff;" onkeydown="if(event.key==='Enter')searchNookalPatients()">
+      <button onclick="searchNookalPatients()" id="nookalSearchBtn"
+        style="padding:6px 14px;background:#065F46;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;transition:background 0.15s;"
+        onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065F46'">
+        Search
+      </button>
+      <span id="nookalStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;white-space:nowrap;"></span>
+    </div>
+    <div id="nookalPatientList" style="display:none;">
+      <label>Select patient</label>
+      <select id="nookalPatientSelect" onchange="selectNookalPatient()" style="margin-bottom:0;background:#fff;">
+        <option value="">— select patient —</option>
+      </select>
+    </div>
+    <div id="nookalError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
   </div>
   <div class="fsec">
     <div class="fsec-title">Patient Details</div>
@@ -1581,7 +1603,218 @@ async function pushToClinico() {
     btn.disabled = false;
   }
 }
+// ── NOOKAL INTEGRATION ──
 
+async function searchNookalPatients() {
+  const fname = document.getElementById('nookalFname').value.trim();
+  const lname = document.getElementById('nookalLname').value.trim();
+  const btn = document.getElementById('nookalSearchBtn');
+  const status = document.getElementById('nookalStatus');
+  const errBox = document.getElementById('nookalError');
+  const list = document.getElementById('nookalPatientList');
+
+  if (!fname && !lname) {
+    errBox.textContent = 'Enter at least a first or last name to search.';
+    errBox.style.display = 'block'; return;
+  }
+
+  errBox.style.display = 'none';
+  btn.textContent = 'Searching…'; btn.disabled = true;
+  status.textContent = ''; list.style.display = 'none';
+
+  try {
+    const params = new URLSearchParams();
+    if (fname) params.set('fname', fname);
+    if (lname) params.set('lname', lname);
+
+    const resp = await fetch(`${PROXY}/nookal/search?${params}`);
+    if (!resp.ok) throw new Error(`Search error ${resp.status}`);
+    const data = await resp.json();
+
+    // Nookal SDK returns patients at data.data.results.patients
+    const patients = data?.data?.results?.patients || [];
+
+    if (patients.length === 0) {
+      status.textContent = 'No patients found.';
+      btn.textContent = 'Search'; btn.disabled = false; return;
+    }
+
+    const select = document.getElementById('nookalPatientSelect');
+    select.innerHTML = '<option value="">— select patient —</option>';
+    patients.forEach(pt => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify(pt);
+      const dob = pt.DOB ? ` (DOB: ${pt.DOB})` : '';
+      opt.textContent = `${pt.FirstName} ${pt.LastName}${dob}`;
+      select.appendChild(opt);
+    });
+
+    list.style.display = 'block';
+    status.textContent = `${patients.length} patient${patients.length !== 1 ? 's' : ''} found`;
+  } catch (e) {
+    errBox.textContent = 'Nookal search failed: ' + e.message;
+    errBox.style.display = 'block';
+  }
+  btn.textContent = 'Search'; btn.disabled = false;
+}
+
+function selectNookalPatient() {
+  const val = document.getElementById('nookalPatientSelect').value;
+  if (!val) return;
+  const pt = JSON.parse(val);
+
+  document.getElementById('fname').value = pt.FirstName || '';
+  document.getElementById('lname').value = pt.LastName || '';
+  if (pt.DOB) document.getElementById('dob').value = pt.DOB.split('T')[0];
+  if (pt.Gender) {
+    const g = pt.Gender.toLowerCase();
+    document.getElementById('pronoun').value =
+      g === 'male' || g === 'm' ? 'male' :
+      g === 'female' || g === 'f' ? 'female' : 'unspecified';
+  }
+
+  // Store Nookal patient ID for push-back
+  document.getElementById('fname').dataset.nookalPatientId = pt.ID || '';
+
+  document.getElementById('nookalStatus').textContent = `✓ Loaded: ${pt.FirstName} ${pt.LastName}`;
+  updatePreview();
+}
+
+async function pushToNookal() {
+  const patientId = document.getElementById('fname').dataset.nookalPatientId;
+  if (!patientId) {
+    alert('No Nookal patient loaded — search and select a patient from the Nookal panel first.');
+    return;
+  }
+
+  const btn = document.getElementById('nookalPushBtn');
+  btn.textContent = 'Pushing…'; btn.disabled = true;
+
+  try {
+    function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+    function has(...ids) { return ids.some(id => val(id)); }
+    function secBlock(title, rows) {
+      if (!rows.length) return '';
+      return `<div style="margin-bottom:14px;">
+        <h4 style="color:#0F6E56;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid #9FE1CB;padding-bottom:3px;margin-bottom:8px;">${title}</h4>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">${rows.map(([l,r])=>`
+          <tr><td style="padding:3px 8px 3px 0;font-weight:bold;color:#444441;width:180px;vertical-align:top;">${l}</td>
+          <td style="padding:3px 0 3px 8px;color:#2C2C2A;border-left:1px solid #dddbd2;">${r}</td></tr>`).join('')}
+        </table></div>`;
+    }
+
+    const fn = val('fname'), ln = val('lname');
+    const assessDate = val('assessDate') ? fmtDate(val('assessDate')) : new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});
+    const sections = [];
+
+    sections.push(`<h2 style="color:#04342C;border-bottom:2px solid #0F6E56;padding-bottom:6px;margin-bottom:12px;">Vestibular Assessment — ${fn} ${ln}</h2>`);
+    sections.push(`<p style="color:#5F5E5A;font-size:12px;margin-bottom:16px;">Assessment date: ${assessDate}${val('refName') ? ` &nbsp;|&nbsp; Referrer: ${val('refName')}${val('refPractice') ? ', '+val('refPractice') : ''}` : ''}${val('nhi') ? ` &nbsp;|&nbsp; NHI: ${val('nhi')}` : ''}</p>`);
+
+    if (val('heidiNote') || val('sessionNotes')) {
+      sections.push(`<h3 style="color:#085041;margin-bottom:6px;">Clinical History</h3>`);
+      const noteText = val('heidiNote') || val('sessionNotes');
+      sections.push(`<div style="background:#F1EFE8;border-left:3px solid #0F6E56;padding:10px 14px;margin-bottom:16px;font-size:12px;white-space:pre-wrap;">${noteText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`);
+    }
+
+    sections.push(`<h3 style="color:#085041;margin-bottom:10px;">Assessment Findings</h3>`);
+
+    // Pre-assessment
+    const preRows = [];
+    if(val('eyeexam')) preRows.push(['Eye exam', val('eyeexam')]);
+    if(val('otoscopy')) preRows.push(['Otoscopy', val('otoscopy')]);
+    if(val('audiometry')) preRows.push(['Audiometry', val('audiometry')]);
+    if(has('lTympType','rTympType')) preRows.push(['Tympanometry', `L: Type ${val('lTympType')||'—'}${val('lTympMEP')?' MEP '+val('lTympMEP')+'daPa':''} &nbsp;|&nbsp; R: Type ${val('rTympType')||'—'}${val('rTympMEP')?' MEP '+val('rTympMEP')+'daPa':''}`]);
+    const liStr=[val('lARTi500'),val('lARTi1000'),val('lARTi2000')].filter(Boolean).join(' / ');
+    const riStr=[val('rARTi500'),val('rARTi1000'),val('rARTi2000')].filter(Boolean).join(' / ');
+    if(liStr||riStr) preRows.push(['Acoustic Reflexes', `L ipsi: ${liStr||'—'} &nbsp;|&nbsp; R ipsi: ${riStr||'—'}`]);
+    sections.push(secBlock('Pre-Assessment', preRows));
+
+    // vHIT
+    function chk(id){const el=document.getElementById(id);return el?el.checked:false;}
+    function sacStr(side){if(!chk(side+'Vhit-saccades'))return'No saccades';const parts=['Saccades'];if(val(side+'Vhit-saccadeSize'))parts.push(val(side+'Vhit-saccadeSize'));if(val(side+'Vhit-saccadeLatency'))parts.push(val(side+'Vhit-saccadeLatency'));if(val(side+'Vhit-saccadePR'))parts.push('PR '+val(side+'Vhit-saccadePR')+'%');return parts.join(', ');}
+    const vhitRows = [];
+    [['Lateral','Lat'],['Anterior','Ant'],['Posterior','Post']].forEach(([name,key])=>{
+      const rg=val(`r${key}Vhit-gain`),lg=val(`l${key}Vhit-gain`),rs=val(`r${key}Vhit-state`),ls=val(`l${key}Vhit-state`);
+      if(rg||lg||rs||ls) vhitRows.push([`${name} SCC`, `<span style="color:#991B1B">R:</span> ${rs||'—'} ${rg?'('+rg+')':''} ${sacStr('r'+key)} &nbsp;|&nbsp; <span style="color:#1E40AF">L:</span> ${ls||'—'} ${lg?'('+lg+')':''} ${sacStr('l'+key)}`]);
+    });
+    if(val('vhitComment')) vhitRows.push(['Comment', val('vhitComment')]);
+    sections.push(secBlock('Video Head Impulse Testing (vHIT)', vhitRows));
+
+    // VEMPs
+    const vempRows = [];
+    if(val('ACcVEMP-status')) vempRows.push(['AC cVEMP', `${val('ACcVEMP-status')}${val('ACcVEMP-NAR')?' NAR: '+val('ACcVEMP-NAR')+'%':''}${val('ACcVEMP-rP1latency')?' R-P1: '+val('ACcVEMP-rP1latency')+'ms':''}${val('ACcVEMP-lP1latency')?' L-P1: '+val('ACcVEMP-lP1latency')+'ms':''}`]);
+    if(val('BCcVEMP-status')) vempRows.push(['BC cVEMP', `${val('BCcVEMP-status')}${val('BCcVEMP-NAR')?' NAR: '+val('BCcVEMP-NAR')+'%':''}`]);
+    if(val('cVEMPcomment')) vempRows.push(['cVEMP note', val('cVEMPcomment')]);
+    if(val('BCoVEMP-status')) vempRows.push(['BC oVEMP', `${val('BCoVEMP-status')}${val('BCoVEMP-AR')?' AR: '+val('BCoVEMP-AR')+'%':''}${val('BCoVEMP-rAmplitude')?' R: '+val('BCoVEMP-rAmplitude')+'µV':''}${val('BCoVEMP-lAmplitude')?' L: '+val('BCoVEMP-lAmplitude')+'µV':''}`]);
+    if(val('ACoVEMP-status')) vempRows.push(['AC oVEMP (SSCD)', `${val('ACoVEMP-status')}${val('ACoVEMP-AR')?' AR: '+val('ACoVEMP-AR')+'%':''}${val('ACoVEMP-SSCD500')?' 500Hz: '+val('ACoVEMP-SSCD500'):''}${val('ACoVEMP-SSCD4k')?' 4kHz: '+val('ACoVEMP-SSCD4k'):''}`]);
+    if(val('oVEMPcomment')) vempRows.push(['oVEMP note', val('oVEMPcomment')]);
+    sections.push(secBlock('Vestibular Evoked Myogenic Potentials', vempRows));
+
+    // Oculomotor
+    const oculoRows = [];
+    if(val('saccade-comment')) oculoRows.push(['Saccades', val('saccade-comment')]);
+    const gc=[val('Gaze_C-GE'),val('Gaze_C-S')].filter(Boolean).join(' / VD: ');
+    const gr=[val('Gaze_R-GE'),val('Gaze_R-S')].filter(Boolean).join(' / VD: ');
+    const gl=[val('Gaze_L-GE'),val('Gaze_L-S')].filter(Boolean).join(' / VD: ');
+    if(gc) oculoRows.push(['Gaze centre', gc]);
+    if(gr) oculoRows.push(['Gaze right', gr]);
+    if(gl) oculoRows.push(['Gaze left', gl]);
+    if(val('OKN')) oculoRows.push(['OKN', val('OKN')]);
+    if(val('Tracking')) oculoRows.push(['Smooth pursuit', val('Tracking')]);
+    if(val('svinResult')) oculoRows.push(['SVIN', val('svinResult')]);
+    sections.push(secBlock('Oculomotor Testing', oculoRows));
+
+    // Positional
+    const posRows = [];
+    [['rDHP','R Dix-Hallpike'],['lDHP','L Dix-Hallpike'],['rRoll','R Roll test'],['lRoll','L Roll test']].forEach(([key,label])=>{
+      const result=val(key+'-result'),comment=val(key+'-comment');
+      if(result||comment) posRows.push([label, [result,comment].filter(Boolean).join(' — ')]);
+    });
+    if(val('bow-lean-result')) posRows.push(['Bow & Lean', [val('bow-lean-result'),val('bow-lean-comment')].filter(Boolean).join(' — ')]);
+    sections.push(secBlock('Positional Testing', posRows));
+
+    // Caloric
+    const caloricRows = [];
+    if(val('Caloric-status')||val('Caloric-UW')) caloricRows.push(['Bithermal', `${val('Caloric-status')||'—'}${val('Caloric-UW')?' UW: '+val('Caloric-UW')+'% (N &lt;25%)':''}`]);
+    if(val('Caloric-monoStatus')||val('Caloric-monoUW')) caloricRows.push(['Monothermal warm', `${val('Caloric-monoStatus')||'—'}${val('Caloric-monoUW')?' UW: '+val('Caloric-monoUW')+'% (N &lt;15%)':''}`]);
+    if(val('30degSpont')) caloricRows.push(['30° spontaneous', val('30degSpont')]);
+    if(val('caloric-comment')) caloricRows.push(['Comment', val('caloric-comment')]);
+    sections.push(secBlock('Caloric Testing', caloricRows));
+
+    // Report letter (if generated)
+    const reportText = document.getElementById('reportOut')?.textContent?.trim() || '';
+    if (reportText && reportText.length > 50) {
+      sections.push(`<h3 style="color:#085041;margin-top:20px;margin-bottom:6px;">Report Letter</h3>`);
+      sections.push(`<div style="background:#F1EFE8;border:1px solid #dddbd2;border-radius:6px;padding:12px 16px;font-family:Georgia,serif;font-size:12px;line-height:1.8;white-space:pre-wrap;">${reportText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`);
+    }
+
+    const html = `<div style="font-family:Arial,sans-serif;font-size:13px;color:#2C2C2A;line-height:1.5;max-width:900px;">${sections.join('\n')}</div>`;
+
+    const resp = await fetch(`${PROXY}/nookal/treatment_note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patient_id: patientId, html })
+    });
+
+    const result = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || result?.data?.status === false) {
+      const msg = result?.data?.message || result?.message || `HTTP ${resp.status}`;
+      throw new Error(msg);
+    }
+
+    btn.textContent = '✓ Pushed to Nookal';
+    btn.style.background = 'rgba(6,95,70,0.35)';
+    setTimeout(() => {
+      btn.textContent = '↑ Push to Nookal';
+      btn.style.background = ''; btn.disabled = false;
+    }, 3000);
+
+  } catch (e) {
+    alert('Nookal push failed: ' + e.message);
+    btn.textContent = '↑ Push to Nookal'; btn.disabled = false;
+  }
+}
 // Set today's date
 document.getElementById('assessDate').value=new Date().toISOString().split('T')[0];
 
