@@ -178,8 +178,6 @@ input.chk-sac{width:auto!important;margin-right:4px;}
   </div>
   <div class="hdr-right">
     <input type="text" id="clinician" placeholder="Clinician ID">
-    <button class="hdr-btn btn-notes" onclick="switchOutput('notes')">📋 Preview Notes</button>
-    <button class="hdr-btn btn-report" onclick="switchOutput('report')">✉ Generate Report</button>
     <button class="hdr-btn btn-send" id="clinikoPushBtn" onclick="pushToClinico()">↑ Push to Cliniko</button>
     <button class="hdr-btn btn-send" id="nookalPushBtn" onclick="pushToNookal()">↑ Push to Nookal</button>
     <button class="hdr-btn btn-send" onclick="sendToSheets()">↑ Save to Sheets</button>
@@ -202,76 +200,81 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 <!-- PATIENT TAB -->
 <div id="tPatient" class="tab-panel active">
 
-  <!-- CLINIKO OPTIONAL PANEL -->
-  <div class="fsec" style="border-color:#BFDBFE;background:#F0F7FF;">
-    <div class="fsec-title" style="color:#1E40AF;">Cliniko <span style="font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint);">— optional, load today's patients</span></div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-      <button onclick="loadClinikoAppointments()" id="clinikoLoadBtn" style="padding:6px 14px;background:#1E40AF;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;transition:background 0.15s;" onmouseover="this.style.background='#1D4ED8'" onmouseout="this.style.background='#1E40AF'">
-        Load Today's Patients
-      </button>
-      <span id="clinikoStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;"></span>
-    </div>
-    <div id="clinikoApptList" style="display:none;">
-      <label>Select patient</label>
-      <select id="clinikoApptSelect" onchange="selectClinikoPatient()" style="margin-bottom:0;">
-        <option value="">— select appointment —</option>
-      </select>
-    </div>
-    <div id="clinikoError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
-  </div>
-  <!-- NOOKAL OPTIONAL PANEL -->
-  <div class="fsec" style="border-color:#6EE7B7;background:#ECFDF5;">
-    <div class="fsec-title" style="color:#065F46;">Nookal <span style="font-weight:normal;text-transform:none;letter-spacing:0;font-size:10px;color:var(--text-hint);">— optional, load today's patients or search</span></div>
-
-    <!-- Practitioner + load today's list -->
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-      <select id="nookalPractSelect" style="flex:1;background:#fff;" onchange="rememberNookalPract()">
-        <option value="">— all practitioners —</option>
-      </select>
-      <button onclick="loadNookalAppointments()" id="nookalLoadBtn"
-        style="padding:6px 14px;background:#065F46;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;transition:background 0.15s;"
-        onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065F46'">
-        Load Upcoming Patients
-      </button>
-      <span id="nookalStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;white-space:nowrap;"></span>
+  <!-- PMS PANEL (Cliniko / Nookal toggle) -->
+  <div class="fsec" id="pmsPanelWrap" style="border-color:#BFDBFE;background:#F0F7FF;">
+    <!-- Toggle row -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:11px;font-weight:bold;color:#1E40AF;font-family:Arial,sans-serif;">Cliniko</span>
+      <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;">
+        <input type="checkbox" id="pmsToggle" onchange="switchPMS()" style="opacity:0;width:0;height:0;">
+        <span id="pmsToggleTrack" style="position:absolute;inset:0;background:#1E40AF;border-radius:11px;cursor:pointer;transition:background 0.2s;"></span>
+        <span id="pmsToggleThumb" style="position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform 0.2s;"></span>
+      </label>
+      <span style="font-size:11px;font-weight:bold;color:#065F46;font-family:Arial,sans-serif;">Nookal</span>
     </div>
 
-    <div id="nookalApptList" style="display:none;margin-bottom:8px;">
-      <label>Select appointment</label>
-      <select id="nookalApptSelect" onchange="selectNookalAppt()" style="margin-bottom:0;background:#fff;">
-        <option value="">— select appointment —</option>
-      </select>
-    </div>
-
-    <!-- Name search fallback -->
-    <details style="margin-top:4px;">
-      <summary style="font-size:11px;color:#065F46;cursor:pointer;font-weight:bold;">Or search by name</summary>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-        <input type="text" id="nookalFname" placeholder="First name" style="flex:1;background:#fff;">
-        <input type="text" id="nookalLname" placeholder="Last name" style="flex:1;background:#fff;" onkeydown="if(event.key==='Enter')searchNookalPatients()">
-        <button onclick="searchNookalPatients()" id="nookalSearchBtn"
-          style="padding:6px 14px;background:#065F46;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;transition:background 0.15s;"
-          onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065F46'">
-          Search
+    <!-- CLINIKO CONTENT -->
+    <div id="clinikoPanel">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <button onclick="loadClinikoAppointments()" id="clinikoLoadBtn" style="padding:6px 14px;background:#1E40AF;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;transition:background 0.15s;" onmouseover="this.style.background='#1D4ED8'" onmouseout="this.style.background='#1E40AF'">
+          Load Today's Patients
         </button>
+        <span id="clinikoStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;"></span>
       </div>
-      <div id="nookalPatientList" style="display:none;margin-top:8px;">
+      <div id="clinikoApptList" style="display:none;">
         <label>Select patient</label>
-        <select id="nookalPatientSelect" onchange="selectNookalPatient()" style="margin-bottom:0;background:#fff;">
-          <option value="">— select patient —</option>
+        <select id="clinikoApptSelect" onchange="selectClinikoPatient()" style="margin-bottom:0;">
+          <option value="">— select appointment —</option>
         </select>
       </div>
-    </details>
-
-    <!-- Case selector (shown once a patient is chosen) -->
-    <div id="nookalCaseRow" style="display:none;margin-top:8px;">
-      <label>Case (note will be filed here)</label>
-      <select id="nookalCaseSelect" style="margin-bottom:0;background:#fff;">
-        <option value="">— select case —</option>
-      </select>
+      <div id="clinikoError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
     </div>
 
-    <div id="nookalError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
+    <!-- NOOKAL CONTENT -->
+    <div id="nookalPanel" style="display:none;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <select id="nookalPractSelect" style="flex:1;background:#fff;" onchange="rememberNookalPract()">
+          <option value="">— all practitioners —</option>
+        </select>
+        <button onclick="loadNookalAppointments()" id="nookalLoadBtn"
+          style="padding:6px 14px;background:#065F46;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;transition:background 0.15s;"
+          onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065F46'">
+          Load Upcoming Patients
+        </button>
+        <span id="nookalStatus" style="font-size:11px;color:var(--text-hint);font-family:Arial,sans-serif;white-space:nowrap;"></span>
+      </div>
+      <div id="nookalApptList" style="display:none;margin-bottom:8px;">
+        <label>Select appointment</label>
+        <select id="nookalApptSelect" onchange="selectNookalAppt()" style="margin-bottom:0;background:#fff;">
+          <option value="">— select appointment —</option>
+        </select>
+      </div>
+      <details style="margin-top:4px;">
+        <summary style="font-size:11px;color:#065F46;cursor:pointer;font-weight:bold;">Or search by name</summary>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+          <input type="text" id="nookalFname" placeholder="First name" style="flex:1;background:#fff;">
+          <input type="text" id="nookalLname" placeholder="Last name" style="flex:1;background:#fff;" onkeydown="if(event.key==='Enter')searchNookalPatients()">
+          <button onclick="searchNookalPatients()" id="nookalSearchBtn"
+            style="padding:6px 14px;background:#065F46;color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;transition:background 0.15s;"
+            onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#065F46'">
+            Search
+          </button>
+        </div>
+        <div id="nookalPatientList" style="display:none;margin-top:8px;">
+          <label>Select patient</label>
+          <select id="nookalPatientSelect" onchange="selectNookalPatient()" style="margin-bottom:0;background:#fff;">
+            <option value="">— select patient —</option>
+          </select>
+        </div>
+      </details>
+      <div id="nookalCaseRow" style="display:none;margin-top:8px;">
+        <label>Case (note will be filed here)</label>
+        <select id="nookalCaseSelect" style="margin-bottom:0;background:#fff;">
+          <option value="">— select case —</option>
+        </select>
+      </div>
+      <div id="nookalError" style="display:none;font-size:11px;color:#991B1B;margin-top:6px;font-family:Arial,sans-serif;"></div>
+    </div>
   </div>
   <div class="fsec">
     <div class="fsec-title">Patient Details</div>
@@ -1674,6 +1677,26 @@ async function loadNookalPractitioners(){
 }
 
 function rememberNookalPract(){ /* hook for future persistence; no-op for now */ }
+
+function switchPMS(){
+  const isNookal = document.getElementById('pmsToggle').checked;
+  document.getElementById('clinikoPanel').style.display = isNookal ? 'none' : '';
+  document.getElementById('nookalPanel').style.display  = isNookal ? '' : 'none';
+  const wrap  = document.getElementById('pmsPanelWrap');
+  const track = document.getElementById('pmsToggleTrack');
+  const thumb = document.getElementById('pmsToggleThumb');
+  if(isNookal){
+    wrap.style.borderColor  = '#6EE7B7';
+    wrap.style.background   = '#ECFDF5';
+    track.style.background  = '#065F46';
+    thumb.style.transform   = 'translateX(18px)';
+  } else {
+    wrap.style.borderColor  = '#BFDBFE';
+    wrap.style.background   = '#F0F7FF';
+    track.style.background  = '#1E40AF';
+    thumb.style.transform   = 'translateX(0)';
+  }
+}
 
 // Load today's appointments for the selected practitioner
 async function loadNookalAppointments(){
