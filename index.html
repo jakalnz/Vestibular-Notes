@@ -1639,13 +1639,16 @@ async function pushToClinico() {
 // ── NOOKAL INTEGRATION ──
 
 // Default practitioner name to preselect (matches against Nookal practitioner list)
-const NOOKAL_DEFAULT_PRACT_NAME = 'Sanders';
+const NOOKAL_DEFAULT_PRACT_NAME = 'Michael Sanders';
 
 // Populate the practitioner dropdown on load
 async function loadNookalPractitioners(){
+  const errBox = document.getElementById('nookalError');
+  if(errBox){ errBox.style.display = 'none'; errBox.textContent = ''; }
+
   try{
     const resp = await fetch(`${PROXY}/nookal/practitioners`);
-    if(!resp.ok) return;
+    if(!resp.ok) throw new Error(`Practitioner fetch error ${resp.status}`);
     const data = await resp.json();
     const practs = data?.data?.results?.practitioners || [];
     const sel = document.getElementById('nookalPractSelect');
@@ -1661,7 +1664,13 @@ async function loadNookalPractitioners(){
       }
       sel.appendChild(opt);
     });
-  }catch(e){ /* silent — practitioner list is optional */ }
+  }catch(e){
+    if(errBox){
+      errBox.textContent = 'Could not load Nookal practitioners: ' + e.message;
+      errBox.style.display = 'block';
+    }
+    console.error('Nookal practitioner load failed:', e);
+  }
 }
 
 function rememberNookalPract(){ /* hook for future persistence; no-op for now */ }
@@ -1809,10 +1818,14 @@ async function loadNookalCases(patientId){
       opt.textContent = '(no cases found — note may not appear)';
       sel.appendChild(opt);
     } else {
-      cases.forEach(c=>{
+      console.log('Nookal cases received:', cases);
+      cases.forEach((c, idx)=>{
+        console.log(`Case ${idx}:`, c);
+        const caseLabel = c.caseTitle || c.title || c.Title || c.name || c.Name || c.reference || c.referrer || c.provider || c.providerName || c.notes || c.Notes || `Case ${c.ID}`;
+        const statusLabel = c.status || c.Status ? ` (${c.status || c.Status})` : '';
         const opt = document.createElement('option');
         opt.value = c.ID;
-        opt.textContent = c.title || `Case ${c.ID}`;
+        opt.textContent = caseLabel + (caseLabel.startsWith('Case ') ? '' : statusLabel);
         sel.appendChild(opt);
       });
       // Auto-select the first (usually most recent / active) case
@@ -1935,13 +1948,22 @@ async function pushToNookal(){
       body: JSON.stringify(payload)
     });
 
-    const result = await resp.json().catch(() => ({}));
-
-    if(!resp.ok || result?.status === 'false' || result?.data?.status === false){
-      const msg = result?.details?.errorMessage || result?.data?.message || result?.message || `HTTP ${resp.status}`;
-      throw new Error(msg);
+    const text = await resp.text();
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (parseErr) {
+      throw new Error(`Invalid JSON response from Nookal: ${parseErr.message}. Response: ${text}`);
     }
 
+    const failure = result?.status === 'failure' || result?.status === false || result?.status === 'false' || result?.data?.status === false;
+    const successNote = result?.data?.results?.note_id != null;
+    if (!resp.ok || failure || !successNote) {
+      const details = result?.details?.errorMessage || result?.details?.error_description || result?.data?.message || result?.message || result?.error || JSON.stringify(result);
+      throw new Error(`Nookal addTreatmentNote failed: ${details}`);
+    }
+
+    console.log('Nookal note created:', result);
     btn.textContent = '✓ Pushed to Nookal';
     btn.style.background = 'rgba(6,95,70,0.35)';
     setTimeout(()=>{ btn.textContent='↑ Push to Nookal'; btn.style.background=''; btn.disabled=false; }, 3000);
