@@ -1853,8 +1853,13 @@ async function pushToNookal(){
   const caseId = document.getElementById('nookalCaseSelect')?.value || '';
   const practId = document.getElementById('nookalPractSelect')?.value || '';
 
+  if(!practId){
+    alert('Please select a practitioner before pushing to Nookal.');
+    return;
+  }
   if(!caseId){
-    if(!confirm('No case selected for this patient. Without a case the note may not appear on the patient record. Continue anyway?')) return;
+    alert('Please select a case before pushing to Nookal.');
+    return;
   }
 
   const btn = document.getElementById('nookalPushBtn');
@@ -1863,90 +1868,89 @@ async function pushToNookal(){
   try{
     function val(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
     function has(...ids){ return ids.some(id=>val(id)); }
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function secBlock(title, rows){
       if(!rows.length) return '';
-      return `<div style="margin-bottom:14px;"><h4 style="color:#0F6E56;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid #9FE1CB;padding-bottom:3px;margin-bottom:8px;">${title}</h4><table style="width:100%;border-collapse:collapse;font-size:12px;">${rows.map(([l,r])=>`<tr><td style="padding:3px 8px 3px 0;font-weight:bold;color:#444441;width:180px;vertical-align:top;">${l}</td><td style="padding:3px 0 3px 8px;color:#2C2C2A;border-left:1px solid #dddbd2;">${r}</td></tr>`).join('')}</table></div>`;
+      return `<h4>${esc(title)}</h4>` + rows.map(([l,r])=>`<p><b>${esc(l)}:</b> ${r}</p>`).join('');
     }
 
     const fn = val('fname'), ln = val('lname');
     const assessDate = val('assessDate') ? fmtDate(val('assessDate')) : new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});
     const sections = [];
 
-    sections.push(`<h2 style="color:#04342C;border-bottom:2px solid #0F6E56;padding-bottom:6px;margin-bottom:12px;">Vestibular Assessment — ${fn} ${ln}</h2>`);
-    sections.push(`<p style="color:#5F5E5A;font-size:12px;margin-bottom:16px;">Assessment date: ${assessDate}${val('refName') ? ` &nbsp;|&nbsp; Referrer: ${val('refName')}${val('refPractice') ? ', '+val('refPractice') : ''}` : ''}${val('nhi') ? ` &nbsp;|&nbsp; NHI: ${val('nhi')}` : ''}</p>`);
+    sections.push(`<h2>Vestibular Assessment - ${esc(fn)} ${esc(ln)}</h2>`);
+    sections.push(`<p>Assessment date: ${esc(assessDate)}${val('refName') ? ` | Referrer: ${esc(val('refName'))}${val('refPractice') ? ', '+esc(val('refPractice')) : ''}` : ''}${val('nhi') ? ` | NHI: ${esc(val('nhi'))}` : ''}</p>`);
 
     if(val('heidiNote') || val('sessionNotes')){
-      sections.push(`<h3 style="color:#085041;margin-bottom:6px;">Clinical History</h3>`);
       const noteText = val('heidiNote') || val('sessionNotes');
-      sections.push(`<div style="background:#F1EFE8;border-left:3px solid #0F6E56;padding:10px 14px;margin-bottom:16px;font-size:12px;white-space:pre-wrap;">${noteText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`);
+      sections.push(`<h3>Clinical History</h3><p>${esc(noteText).replace(/\n/g,'<br>')}</p>`);
     }
 
-    sections.push(`<h3 style="color:#085041;margin-bottom:10px;">Assessment Findings</h3>`);
+    sections.push(`<h3>Assessment Findings</h3>`);
 
     const preRows = [];
-    if(val('eyeexam')) preRows.push(['Eye exam', val('eyeexam')]);
-    if(val('otoscopy')) preRows.push(['Otoscopy', val('otoscopy')]);
-    if(val('audiometry')) preRows.push(['Audiometry', val('audiometry')]);
-    if(has('lTympType','rTympType')) preRows.push(['Tympanometry', `L: Type ${val('lTympType')||'—'}${val('lTympMEP')?' MEP '+val('lTympMEP')+'daPa':''} &nbsp;|&nbsp; R: Type ${val('rTympType')||'—'}${val('rTympMEP')?' MEP '+val('rTympMEP')+'daPa':''}`]);
-    const liStr=[val('lARTi500'),val('lARTi1000'),val('lARTi2000')].filter(Boolean).join(' / ');
-    const riStr=[val('rARTi500'),val('rARTi1000'),val('rARTi2000')].filter(Boolean).join(' / ');
-    if(liStr||riStr) preRows.push(['Acoustic Reflexes', `L ipsi: ${liStr||'—'} &nbsp;|&nbsp; R ipsi: ${riStr||'—'}`]);
+    if(val('eyeexam')) preRows.push(['Eye exam', esc(val('eyeexam'))]);
+    if(val('otoscopy')) preRows.push(['Otoscopy', esc(val('otoscopy'))]);
+    if(val('audiometry')) preRows.push(['Audiometry', esc(val('audiometry'))]);
+    if(has('lTympType','rTympType')) preRows.push(['Tympanometry', `L: Type ${esc(val('lTympType')||'-')}${val('lTympMEP')?' MEP '+esc(val('lTympMEP'))+'daPa':''} | R: Type ${esc(val('rTympType')||'-')}${val('rTympMEP')?' MEP '+esc(val('rTympMEP'))+'daPa':''}`]);
+    const liStr=[val('lARTi500'),val('lARTi1000'),val('lARTi2000')].filter(Boolean).map(esc).join(' / ');
+    const riStr=[val('rARTi500'),val('rARTi1000'),val('rARTi2000')].filter(Boolean).map(esc).join(' / ');
+    if(liStr||riStr) preRows.push(['Acoustic Reflexes', `L ipsi: ${liStr||'-'} | R ipsi: ${riStr||'-'}`]);
     sections.push(secBlock('Pre-Assessment', preRows));
 
     function chk(id){ const el=document.getElementById(id); return el?el.checked:false; }
-    function sacStr(side){ if(!chk(side+'Vhit-saccades'))return'No saccades'; const parts=['Saccades']; if(val(side+'Vhit-saccadeSize'))parts.push(val(side+'Vhit-saccadeSize')); if(val(side+'Vhit-saccadeLatency'))parts.push(val(side+'Vhit-saccadeLatency')); if(val(side+'Vhit-saccadePR'))parts.push('PR '+val(side+'Vhit-saccadePR')+'%'); return parts.join(', '); }
+    function sacStr(side){ if(!chk(side+'Vhit-saccades'))return'No saccades'; const parts=['Saccades']; if(val(side+'Vhit-saccadeSize'))parts.push(esc(val(side+'Vhit-saccadeSize'))); if(val(side+'Vhit-saccadeLatency'))parts.push(esc(val(side+'Vhit-saccadeLatency'))); if(val(side+'Vhit-saccadePR'))parts.push('PR '+esc(val(side+'Vhit-saccadePR'))+'%'); return parts.join(', '); }
     const vhitRows = [];
     [['Lateral','Lat'],['Anterior','Ant'],['Posterior','Post']].forEach(([name,key])=>{
       const rg=val(`r${key}Vhit-gain`),lg=val(`l${key}Vhit-gain`),rs=val(`r${key}Vhit-state`),ls=val(`l${key}Vhit-state`);
-      if(rg||lg||rs||ls) vhitRows.push([`${name} SCC`, `<span style="color:#991B1B">R:</span> ${rs||'—'} ${rg?'('+rg+')':''} ${sacStr('r'+key)} &nbsp;|&nbsp; <span style="color:#1E40AF">L:</span> ${ls||'—'} ${lg?'('+lg+')':''} ${sacStr('l'+key)}`]);
+      if(rg||lg||rs||ls) vhitRows.push([`${name} SCC`, `R: ${esc(rs)||'-'} ${rg?'('+esc(rg)+')':''} ${sacStr('r'+key)} | L: ${esc(ls)||'-'} ${lg?'('+esc(lg)+')':''} ${sacStr('l'+key)}`]);
     });
-    if(val('vhitComment')) vhitRows.push(['Comment', val('vhitComment')]);
+    if(val('vhitComment')) vhitRows.push(['Comment', esc(val('vhitComment'))]);
     sections.push(secBlock('Video Head Impulse Testing (vHIT)', vhitRows));
 
     const vempRows = [];
-    if(val('ACcVEMP-status')) vempRows.push(['AC cVEMP', `${val('ACcVEMP-status')}${val('ACcVEMP-NAR')?' NAR: '+val('ACcVEMP-NAR')+'%':''}${val('ACcVEMP-rP1latency')?' R-P1: '+val('ACcVEMP-rP1latency')+'ms':''}${val('ACcVEMP-lP1latency')?' L-P1: '+val('ACcVEMP-lP1latency')+'ms':''}`]);
-    if(val('BCcVEMP-status')) vempRows.push(['BC cVEMP', `${val('BCcVEMP-status')}${val('BCcVEMP-NAR')?' NAR: '+val('BCcVEMP-NAR')+'%':''}`]);
-    if(val('cVEMPcomment')) vempRows.push(['cVEMP note', val('cVEMPcomment')]);
-    if(val('BCoVEMP-status')) vempRows.push(['BC oVEMP', `${val('BCoVEMP-status')}${val('BCoVEMP-AR')?' AR: '+val('BCoVEMP-AR')+'%':''}${val('BCoVEMP-rAmplitude')?' R: '+val('BCoVEMP-rAmplitude')+'µV':''}${val('BCoVEMP-lAmplitude')?' L: '+val('BCoVEMP-lAmplitude')+'µV':''}`]);
-    if(val('ACoVEMP-status')) vempRows.push(['AC oVEMP (SSCD)', `${val('ACoVEMP-status')}${val('ACoVEMP-AR')?' AR: '+val('ACoVEMP-AR')+'%':''}${val('ACoVEMP-SSCD500')?' 500Hz: '+val('ACoVEMP-SSCD500'):''}${val('ACoVEMP-SSCD4k')?' 4kHz: '+val('ACoVEMP-SSCD4k'):''}`]);
-    if(val('oVEMPcomment')) vempRows.push(['oVEMP note', val('oVEMPcomment')]);
+    if(val('ACcVEMP-status')) vempRows.push(['AC cVEMP', `${esc(val('ACcVEMP-status'))}${val('ACcVEMP-NAR')?' NAR: '+esc(val('ACcVEMP-NAR'))+'%':''}${val('ACcVEMP-rP1latency')?' R-P1: '+esc(val('ACcVEMP-rP1latency'))+'ms':''}${val('ACcVEMP-lP1latency')?' L-P1: '+esc(val('ACcVEMP-lP1latency'))+'ms':''}`]);
+    if(val('BCcVEMP-status')) vempRows.push(['BC cVEMP', `${esc(val('BCcVEMP-status'))}${val('BCcVEMP-NAR')?' NAR: '+esc(val('BCcVEMP-NAR'))+'%':''}`]);
+    if(val('cVEMPcomment')) vempRows.push(['cVEMP note', esc(val('cVEMPcomment'))]);
+    if(val('BCoVEMP-status')) vempRows.push(['BC oVEMP', `${esc(val('BCoVEMP-status'))}${val('BCoVEMP-AR')?' AR: '+esc(val('BCoVEMP-AR'))+'%':''}${val('BCoVEMP-rAmplitude')?' R: '+esc(val('BCoVEMP-rAmplitude'))+'uV':''}${val('BCoVEMP-lAmplitude')?' L: '+esc(val('BCoVEMP-lAmplitude'))+'uV':''}`]);
+    if(val('ACoVEMP-status')) vempRows.push(['AC oVEMP (SSCD)', `${esc(val('ACoVEMP-status'))}${val('ACoVEMP-AR')?' AR: '+esc(val('ACoVEMP-AR'))+'%':''}${val('ACoVEMP-SSCD500')?' 500Hz: '+esc(val('ACoVEMP-SSCD500')):''}${val('ACoVEMP-SSCD4k')?' 4kHz: '+esc(val('ACoVEMP-SSCD4k')):''}`]);
+    if(val('oVEMPcomment')) vempRows.push(['oVEMP note', esc(val('oVEMPcomment'))]);
     sections.push(secBlock('Vestibular Evoked Myogenic Potentials', vempRows));
 
     const oculoRows = [];
-    if(val('saccade-comment')) oculoRows.push(['Saccades', val('saccade-comment')]);
-    const gc=[val('Gaze_C-GE'),val('Gaze_C-S')].filter(Boolean).join(' / VD: ');
-    const gr=[val('Gaze_R-GE'),val('Gaze_R-S')].filter(Boolean).join(' / VD: ');
-    const gl=[val('Gaze_L-GE'),val('Gaze_L-S')].filter(Boolean).join(' / VD: ');
+    if(val('saccade-comment')) oculoRows.push(['Saccades', esc(val('saccade-comment'))]);
+    const gc=[val('Gaze_C-GE'),val('Gaze_C-S')].filter(Boolean).map(esc).join(' / VD: ');
+    const gr=[val('Gaze_R-GE'),val('Gaze_R-S')].filter(Boolean).map(esc).join(' / VD: ');
+    const gl=[val('Gaze_L-GE'),val('Gaze_L-S')].filter(Boolean).map(esc).join(' / VD: ');
     if(gc) oculoRows.push(['Gaze centre', gc]);
     if(gr) oculoRows.push(['Gaze right', gr]);
     if(gl) oculoRows.push(['Gaze left', gl]);
-    if(val('OKN')) oculoRows.push(['OKN', val('OKN')]);
-    if(val('Tracking')) oculoRows.push(['Smooth pursuit', val('Tracking')]);
-    if(val('svinResult')) oculoRows.push(['SVIN', val('svinResult')]);
+    if(val('OKN')) oculoRows.push(['OKN', esc(val('OKN'))]);
+    if(val('Tracking')) oculoRows.push(['Smooth pursuit', esc(val('Tracking'))]);
+    if(val('svinResult')) oculoRows.push(['SVIN', esc(val('svinResult'))]);
     sections.push(secBlock('Oculomotor Testing', oculoRows));
 
     const posRows = [];
     [['rDHP','R Dix-Hallpike'],['lDHP','L Dix-Hallpike'],['rRoll','R Roll test'],['lRoll','L Roll test']].forEach(([key,label])=>{
       const result=val(key+'-result'),comment=val(key+'-comment');
-      if(result||comment) posRows.push([label, [result,comment].filter(Boolean).join(' — ')]);
+      if(result||comment) posRows.push([label, [result,comment].filter(Boolean).map(esc).join(' - ')]);
     });
-    if(val('bow-lean-result')) posRows.push(['Bow & Lean', [val('bow-lean-result'),val('bow-lean-comment')].filter(Boolean).join(' — ')]);
+    if(val('bow-lean-result')) posRows.push(['Bow &amp; Lean', [val('bow-lean-result'),val('bow-lean-comment')].filter(Boolean).map(esc).join(' - ')]);
     sections.push(secBlock('Positional Testing', posRows));
 
     const caloricRows = [];
-    if(val('Caloric-status')||val('Caloric-UW')) caloricRows.push(['Bithermal', `${val('Caloric-status')||'—'}${val('Caloric-UW')?' UW: '+val('Caloric-UW')+'% (N &lt;25%)':''}`]);
-    if(val('Caloric-monoStatus')||val('Caloric-monoUW')) caloricRows.push(['Monothermal warm', `${val('Caloric-monoStatus')||'—'}${val('Caloric-monoUW')?' UW: '+val('Caloric-monoUW')+'% (N &lt;15%)':''}`]);
-    if(val('30degSpont')) caloricRows.push(['30° spontaneous', val('30degSpont')]);
-    if(val('caloric-comment')) caloricRows.push(['Comment', val('caloric-comment')]);
+    if(val('Caloric-status')||val('Caloric-UW')) caloricRows.push(['Bithermal', `${esc(val('Caloric-status')||'-')}${val('Caloric-UW')?' UW: '+esc(val('Caloric-UW'))+'% (N &lt;25%)':''}`]);
+    if(val('Caloric-monoStatus')||val('Caloric-monoUW')) caloricRows.push(['Monothermal warm', `${esc(val('Caloric-monoStatus')||'-')}${val('Caloric-monoUW')?' UW: '+esc(val('Caloric-monoUW'))+'% (N &lt;15%)':''}`]);
+    if(val('30degSpont')) caloricRows.push(['30deg spontaneous', esc(val('30degSpont'))]);
+    if(val('caloric-comment')) caloricRows.push(['Comment', esc(val('caloric-comment'))]);
     sections.push(secBlock('Caloric Testing', caloricRows));
 
     const reportText = document.getElementById('reportOut')?.textContent?.trim() || '';
     if(reportText && reportText.length > 50){
-      sections.push(`<h3 style="color:#085041;margin-top:20px;margin-bottom:6px;">Report Letter</h3>`);
-      sections.push(`<div style="background:#F1EFE8;border:1px solid #dddbd2;border-radius:6px;padding:12px 16px;font-family:Georgia,serif;font-size:12px;line-height:1.8;white-space:pre-wrap;">${reportText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`);
+      sections.push(`<h3>Report Letter</h3><p>${esc(reportText).replace(/\n/g,'<br>')}</p>`);
     }
 
-    const html = `<div style="font-family:Arial,sans-serif;font-size:13px;color:#2C2C2A;line-height:1.5;max-width:900px;">${sections.join('\n')}</div>`;
+    const html = `<div>${sections.join('')}</div>`;
 
     const payload = { patient_id: patientId, html };
     if(caseId) payload.case_id = caseId;
@@ -1969,10 +1973,8 @@ async function pushToNookal(){
     const failure = result?.status === 'failure' || result?.status === false || result?.status === 'false' || result?.data?.status === false;
     const successNote = result?.data?.results?.note_id != null;
     if (!resp.ok || failure || !successNote) {
-      const details = result?.details?.errorMessage || result?.details?.error_description || result?.data?.message || result?.message || result?.error || '';
-      const debug = result?._debug ? ` [sent: ${(result._debug.sentFields||[]).join(',')} status:${result._debug.nookalStatus}]` : '';
-      const raw = (!details && !debug) ? ' ' + JSON.stringify(result) : '';
-      throw new Error(`Nookal addTreatmentNote failed: ${details}${debug}${raw}`);
+      const details = result?.details?.errorMessage || result?.details?.error_description || result?.data?.message || result?.message || result?.error || '(no message)';
+      throw new Error(`Nookal addTreatmentNote failed: ${details}`);
     }
 
     console.log('Nookal note created:', result);

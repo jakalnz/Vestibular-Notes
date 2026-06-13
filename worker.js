@@ -220,24 +220,26 @@ export default {
         const fromDate = today.toISOString().split('T')[0];
         const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-        // Fetch appointments and full patient list in parallel
-        const [apptResult, patientsResult] = await Promise.all([
-          nookalPost('getAppointments', {
-            practitioner_id: practitionerId,
-            date_from: fromDate,
-            date_to: toDate
-          }, env),
-          nookalPost('getPatients', {}, env)
-        ]);
+        const apptResult = await nookalPost('getAppointments', {
+          practitioner_id: practitionerId,
+          date_from: fromDate,
+          date_to: toDate
+        }, env);
 
         const appointments = apptResult.parsed?.data?.results?.appointments || [];
-        const allPatients = patientsResult.parsed?.data?.results?.patients || [];
 
-        // Build a fast ID → patient lookup map
+        // Fetch each unique patient by ID using searchPatients
+        const uniquePatientIds = [...new Set(appointments.map(a => a.patientID).filter(Boolean))];
+        const patientResults = await Promise.all(
+          uniquePatientIds.map(id => nookalPost('searchPatients', { patient_id: id }, env))
+        );
+
         const patientMap = {};
-        allPatients.forEach(p => { if (p.ID) patientMap[String(p.ID)] = p; });
+        patientResults.forEach(r => {
+          const patients = r.parsed?.data?.results?.patients || [];
+          patients.forEach(p => { if (p.ID) patientMap[String(p.ID)] = p; });
+        });
 
-        // Embed patient object into each appointment; drop appointments we can't resolve
         const enriched = appointments
           .map(a => ({ ...a, patient: patientMap[String(a.patientID)] || null }))
           .filter(a => a.patient !== null);
@@ -323,18 +325,20 @@ export default {
 
         const req = await request.json().catch(() => ({}));
 
-        if (!req.patient_id || !req.html) {
-          return respondJson({ error: 'patient_id and html are required' }, 400);
+        if (!req.patient_id || !req.html || !req.practitioner_id || !req.case_id) {
+          return respondJson({ error: 'patient_id, practitioner_id, case_id and html are required' }, 400);
         }
 
+        const today = new Date().toISOString().split('T')[0];
         const body = new URLSearchParams({
           api_key: env.NOOKAL_API_KEY,
-          clientID: String(req.patient_id),
+          patient_id: String(req.patient_id),
+          practitioner_id: String(req.practitioner_id),
+          case_id: String(req.case_id),
+          date: req.date || today,
           html: req.html,
           notes: req.html
         });
-        if (req.case_id) body.set('caseID', String(req.case_id));
-        if (req.practitioner_id) body.set('practitionerID', String(req.practitioner_id));
 
         const nookalResp = await fetch('https://api.nookal.com/production/v2/addTreatmentNote', {
           method: 'POST',
@@ -343,13 +347,7 @@ export default {
         });
 
         const data = await nookalResp.json().catch(() => ({}));
-        // Always include debug info so failures are diagnosable (API key is redacted)
-        const debugInfo = {
-          sentFields: Object.keys(Object.fromEntries(body.entries())).filter(k => k !== 'api_key'),
-          nookalStatus: nookalResp.status,
-          nookalOk: nookalResp.ok
-        };
-        return new Response(JSON.stringify({ ...data, _debug: debugInfo }), {
+        return new Response(JSON.stringify(data), {
           status: nookalResp.ok ? 200 : nookalResp.status,
           headers: { ...CORS, 'Content-Type': 'application/json' }
         });
