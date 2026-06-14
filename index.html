@@ -153,6 +153,63 @@ input.chk-sac{width:auto!important;margin-right:4px;}
   .out-panel{display:block!important;}
   .np-notes{max-height:none!important;overflow:visible!important;}
 }
+
+/* ── MOBILE DRAWER ── */
+@media(max-width:768px){
+  .main{display:block;}
+  .form-col{max-height:none;padding-bottom:70px;}
+  .output-col{
+    position:fixed;top:0;right:0;bottom:0;
+    width:92vw;max-width:480px;
+    transform:translateX(100%);
+    transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    z-index:500;
+    border-left:none;
+    box-shadow:-4px 0 24px rgba(0,0,0,0.18);
+    max-height:100vh;
+  }
+  .output-col.drawer-open{transform:translateX(0);}
+  #drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:499;}
+  #drawerOverlay.show{display:block;}
+  #drawerCloseBtn{display:flex;}
+  #mobileFooter{display:flex;}
+}
+@media(min-width:769px){
+  #drawerOverlay{display:none!important;}
+  #drawerCloseBtn{display:none!important;}
+  #mobileFooter{display:none!important;}
+}
+
+/* Mobile footer bar */
+#mobileFooter{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--teal-900);
+  padding:10px 16px;
+  gap:8px;
+  z-index:400;
+  border-top:1px solid var(--teal-600);
+}
+#mobileFooter button{
+  flex:1;padding:9px 6px;border:none;border-radius:var(--rs);
+  font-size:12px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;
+}
+.mob-btn-notes{background:var(--teal-600);color:#E1F5EE;}
+.mob-btn-report{background:#E1F5EE;color:var(--teal-900);}
+
+/* Drawer close button */
+#drawerCloseBtn{
+  display:none;
+  align-items:center;gap:6px;
+  padding:8px 12px;
+  background:var(--teal-800);
+  border-bottom:1px solid var(--teal-600);
+  flex-shrink:0;
+}
+#drawerCloseBtn button{
+  background:none;border:none;color:#E1F5EE;
+  font-size:18px;cursor:pointer;padding:0 4px;line-height:1;
+}
 </style>
 </head>
 <body>
@@ -750,7 +807,12 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 </div><!-- end form-col -->
 
 <!-- ═══════════════════ OUTPUT COLUMN ═══════════════════ -->
-<div class="output-col">
+<div class="output-col" id="outputCol">
+  <!-- Mobile close bar (hidden on desktop) -->
+  <div id="drawerCloseBtn">
+    <button onclick="closeDrawer()" title="Back to form">&#8592;</button>
+    <span style="font-size:12px;font-weight:bold;color:#E1F5EE;font-family:Arial,sans-serif;">Back to form</span>
+  </div>
   <div class="output-tabs">
     <button class="output-tab active" id="tab-notes" onclick="switchOutput('notes')">📋 Clinical Notes</button>
     <button class="output-tab" id="tab-report" onclick="switchOutput('report')">✉ Report Letter</button>
@@ -782,6 +844,15 @@ input.chk-sac{width:auto!important;margin-right:4px;}
   </div>
 </div>
 </div><!-- end main -->
+
+<!-- Mobile overlay -->
+<div id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- Mobile footer bar -->
+<div id="mobileFooter">
+  <button class="mob-btn-notes" onclick="openDrawer('notes')">📋 Clinical Notes</button>
+  <button class="mob-btn-report" onclick="openDrawer('report')">✉ Report Letter</button>
+</div>
 
 <form id="sheetsForm" method="POST" action="https://script.google.com/macros/s/AKfycbxbdUR7ohtdDiBlnfKxxFtHSp1libETFuwiLIV0FeC6PeZywmJUU4E41F_lyi88C7CO/exec" style="display:none">
   <input name="clinician" id="sf-clinician">
@@ -860,6 +931,19 @@ function switchOutput(which){
   document.querySelectorAll('.output-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('out-'+which).classList.add('active');
   document.getElementById('tab-'+which).classList.add('active');
+}
+
+function openDrawer(which){
+  switchOutput(which);
+  document.getElementById('outputCol').classList.add('drawer-open');
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer(){
+  document.getElementById('outputCol').classList.remove('drawer-open');
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.body.style.overflow = '';
 }
 
 function toggleSac(side){
