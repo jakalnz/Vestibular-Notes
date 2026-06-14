@@ -1294,7 +1294,7 @@ Audiometry: ${v('audiometry')||'NOT PERFORMED — omit Audiometry section'}
 
 ════ MIDDLE EAR ════
 Tympanometry: ${(v('rTympType')||v('lTympType')) ? `R Type ${v('rTympType')||'A'}, L Type ${v('lTympType')||'A'}` : 'NOT PERFORMED — omit Middle Ear section'}
-Acoustic reflexes ipsi — RI: ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].filter(Boolean).join('/')||'screened present'}, LI: ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].filter(Boolean).join('/')||'screened present'}
+${([v('rARTi500'),v('rARTi1000'),v('rARTi2000'),v('lARTi500'),v('lARTi1000'),v('lARTi2000')].some(Boolean)) ? `Acoustic reflexes ipsi — RI: ${[v('rARTi500'),v('rARTi1000'),v('rARTi2000')].filter(Boolean).join('/')}, LI: ${[v('lARTi500'),v('lARTi1000'),v('lARTi2000')].filter(Boolean).join('/')}` : 'Acoustic reflexes: NOT TESTED — omit from report'}
 ${(v('rARTc500')||v('rARTc1000')||v('rARTc2000')||v('lARTc500')||v('lARTc1000')||v('lARTc2000'))?`Acoustic reflexes contra — RC: ${[v('rARTc500'),v('rARTc1000'),v('rARTc2000')].filter(Boolean).join('/')}, LC: ${[v('lARTc500'),v('lARTc1000'),v('lARTc2000')].filter(Boolean).join('/')}` : 'Contra reflexes: NOT TESTED — do not mention in report'}
 
 ════ OCULOMOTOR (VNG — ${v('VNG-mode')||'binocular'} recording) ════
@@ -1333,7 +1333,7 @@ vHIT comment: ${v('vhitComment')||'none'}` : 'NOT PERFORMED — omit vHIT sectio
 ${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')||v('ACoVEMP-status')||v('ACoVEMP-SSCD500')||v('ACoVEMP-SSCD4k')||v('ACoVEMP-rAmplitude')||v('ACoVEMP-lAmplitude')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
 BC cVEMP: ${v('BCcVEMP-status')||'—'}, NAR: ${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}, R P1: ${v('BCcVEMP-rP1latency')||'—'}ms, L P1: ${v('BCcVEMP-lP1latency')||'—'}ms
 cVEMP comment: ${v('cVEMPcomment')||'none'}
-BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N>40%)':'—'}, R amp: ${v('BCoVEMP-rAmplitude')||'—'}µV, L amp: ${v('BCoVEMP-lAmplitude')||'—'}µV, R N1: ${v('BCoVEMP-rN1latency')||'—'}ms, L N1: ${v('BCoVEMP-lN1latency')||'—'}ms
+BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N>40%)':'not calculated'}${v('BCoVEMP-rAmplitude')?', R amp: '+v('BCoVEMP-rAmplitude')+'µV':''}${v('BCoVEMP-lAmplitude')?', L amp: '+v('BCoVEMP-lAmplitude')+'µV':''}${v('BCoVEMP-rN1latency')?', R N1: '+v('BCoVEMP-rN1latency')+'ms':''}${v('BCoVEMP-lN1latency')?', L N1: '+v('BCoVEMP-lN1latency')+'ms':''}
 ${acOvempLine}
 oVEMP comment: ${v('oVEMPcomment')||'none'}` : 'NOT PERFORMED — omit VEMPs section entirely'}`;
 }
@@ -1973,7 +1973,7 @@ async function pushToNookal(){
     function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function secBlock(title, rows){
       if(!rows.length) return '';
-      return `<h4>${esc(title)}</h4>` + rows.map(([l,r])=>`<p><b>${esc(l)}:</b> ${r}</p>`).join('');
+      return `<hr><h4>${esc(title)}</h4>` + rows.map(([l,r])=>`<p><b>${esc(l)}:</b> ${r}</p>`).join('');
     }
 
     const fn = val('fname'), ln = val('lname');
@@ -1985,10 +1985,10 @@ async function pushToNookal(){
 
     if(val('heidiNote') || val('sessionNotes')){
       const noteText = val('heidiNote') || val('sessionNotes');
-      sections.push(`<h3>Clinical History</h3><p>${esc(noteText).replace(/\n/g,'<br>')}</p>`);
+      sections.push(`<hr><h3>Clinical History</h3><p>${esc(noteText).replace(/\n/g,'<br>')}</p>`);
     }
 
-    sections.push(`<h3>Assessment Findings</h3>`);
+    sections.push(`<hr><h3>Assessment Findings</h3>`);
 
     const preRows = [];
     if(val('eyeexam')) preRows.push(['Eye exam', esc(val('eyeexam'))]);
@@ -2049,7 +2049,16 @@ async function pushToNookal(){
 
     const reportText = document.getElementById('reportOut')?.textContent?.trim() || '';
     if(reportText && reportText.length > 50){
-      sections.push(`<h3>Report Letter</h3><p>${esc(reportText).replace(/\n/g,'<br>')}</p>`);
+      const reportHtml = esc(reportText)
+        .split('\n')
+        .map(line => {
+          const trimmed = line.trim();
+          if(!trimmed) return '<br>';
+          if(trimmed.startsWith('•') || trimmed.startsWith('-')) return `<p>&nbsp;&nbsp;${trimmed}</p>`;
+          return `<p>${trimmed}</p>`;
+        })
+        .join('');
+      sections.push(`<hr><h3>Draft Report Letter</h3>${reportHtml}`);
     }
 
     const html = `<div>${sections.join('')}</div>`;
