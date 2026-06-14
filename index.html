@@ -155,34 +155,13 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 }
 
 /* ── MOBILE DRAWER ── */
-@media(max-width:768px){
-  .main{display:block;}
-  .form-col{max-height:none;padding-bottom:70px;}
-  .output-col{
-    position:fixed;top:0;right:0;bottom:0;
-    width:92vw;max-width:480px;
-    transform:translateX(100%);
-    transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    z-index:500;
-    border-left:none;
-    box-shadow:-4px 0 24px rgba(0,0,0,0.18);
-    max-height:100vh;
-  }
-  .output-col.drawer-open{transform:translateX(0);}
-  #drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:499;}
-  #drawerOverlay.show{display:block;}
-  #drawerCloseBtn{display:flex;}
-  #mobileFooter{display:flex;}
-}
-@media(min-width:769px){
-  #drawerOverlay{display:none!important;}
-  #drawerCloseBtn{display:none!important;}
-  #mobileFooter{display:none!important;}
-}
+/* Mobile-only elements hidden by default, shown via media query */
+#mobileFooter{display:none;}
+#drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:499;}
+#drawerOverlay.show{display:block;}
+#drawerCloseBtn{display:none;}
 
-/* Mobile footer bar */
 #mobileFooter{
-  display:none;
   position:fixed;bottom:0;left:0;right:0;
   background:var(--teal-900);
   padding:10px 16px;
@@ -197,9 +176,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 .mob-btn-notes{background:var(--teal-600);color:#E1F5EE;}
 .mob-btn-report{background:#E1F5EE;color:var(--teal-900);}
 
-/* Drawer close button */
 #drawerCloseBtn{
-  display:none;
   align-items:center;gap:6px;
   padding:8px 12px;
   background:var(--teal-800);
@@ -209,6 +186,24 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 #drawerCloseBtn button{
   background:none;border:none;color:#E1F5EE;
   font-size:18px;cursor:pointer;padding:0 4px;line-height:1;
+}
+
+@media(max-width:768px){
+  .main{display:block;}
+  .form-col{max-height:none;padding-bottom:70px;}
+  .output-col{
+    position:fixed;top:0;right:0;bottom:0;
+    width:92vw;max-width:480px;
+    transform:translateX(100%);
+    transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    z-index:500;
+    border-left:none;
+    box-shadow:-4px 0 24px rgba(0,0,0,0.18);
+    max-height:100vh;
+  }
+  .output-col.drawer-open{transform:translateX(0);}
+  #mobileFooter{display:flex;}
+  #drawerCloseBtn{display:flex;}
 }
 </style>
 </head>
