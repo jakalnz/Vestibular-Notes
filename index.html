@@ -1226,9 +1226,9 @@ Caloric Testing: State irrigation method first ("Bi-thermal caloric irrigations 
 vHIT: Prose paragraph. For normal canals state gains are within normal limits bilaterally with no catch-up saccades. For abnormal canals, name the canal and side, give the gain value with normal range in square brackets, and describe the saccade characteristics (size, pattern — e.g. "significant large scattered catch-up saccades").
 
 Vestibular Evoked Myogenic Potentials: Bullet point per modality. Format:
-  • AC cVEMP (Saccule/Inferior Vestibular Nerve): [Symmetrical/Asymmetrical] responses were obtained (NAR: X%, N>30%) [plain-English interpretation if abnormal, e.g. "indicating absent or weaker left ear saccular function"]
+  • AC cVEMP (Saccule/Inferior Vestibular Nerve): [Symmetrical/Asymmetrical] responses were obtained (NAR: X%, N<30%) [plain-English interpretation if abnormal, e.g. "indicating absent or weaker left ear saccular function"]
   • BC cVEMP: [results if performed]
-  • BC oVEMP (Utricle/Superior Vestibular Nerve): [Symmetrical/Asymmetrical] responses were obtained (AR: X%, N>40%) [interpretation if abnormal; note any morphology observations e.g. double-peaked response]
+  • BC oVEMP (Utricle/Superior Vestibular Nerve): [Symmetrical/Asymmetrical] responses were obtained (AR: X%, N<40%) [plain-English interpretation if abnormal, e.g. "indicating absent or weaker left ear utricular function"; note any morphology observations e.g. double-peaked response]
   • AC oVEMP (Utricle / Third Window Checks): Include this bullet whenever AC oVEMP was performed (i.e. SSCD fields have any value other than blank or DNT). Interpret the SSCD check fields as follows:
     - SSCD 500Hz = Right, Left, or Both → POSITIVE. Enhanced amplitudes were obtained at 500Hz in the named ear(s), consistent with a third window effect (likely SSCD) — a third window lowers the activation threshold, producing enhanced responses.
     - SSCD 500Hz = Negative → responses at 500Hz were not enhanced, inconsistent with a third window effect at this frequency.
@@ -1330,10 +1330,10 @@ L Posterior: ${v('lPostVhit-state')||'Normal'}, gain ${v('lPostVhit-gain')||'—
 vHIT comment: ${v('vhitComment')||'none'}` : 'NOT PERFORMED — omit vHIT section entirely'}
 
 ════ VEMPs ════
-${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')||v('ACoVEMP-status')||v('ACoVEMP-SSCD500')||v('ACoVEMP-SSCD4k')||v('ACoVEMP-rAmplitude')||v('ACoVEMP-lAmplitude')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N>30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
+${(v('ACcVEMP-status')||v('ACcVEMP-NAR')||v('BCoVEMP-status')||v('BCoVEMP-AR')||v('ACoVEMP-status')||v('ACoVEMP-SSCD500')||v('ACoVEMP-SSCD4k')||v('ACoVEMP-rAmplitude')||v('ACoVEMP-lAmplitude')) ? `AC cVEMP: ${v('ACcVEMP-status')||'—'}, NAR: ${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'% (N<30%)':'—'}, R P1: ${v('ACcVEMP-rP1latency')||'—'}ms, L P1: ${v('ACcVEMP-lP1latency')||'—'}ms
 BC cVEMP: ${v('BCcVEMP-status')||'—'}, NAR: ${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}, R P1: ${v('BCcVEMP-rP1latency')||'—'}ms, L P1: ${v('BCcVEMP-lP1latency')||'—'}ms
 cVEMP comment: ${v('cVEMPcomment')||'none'}
-BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N>40%)':'not calculated'}${v('BCoVEMP-rAmplitude')?', R amp: '+v('BCoVEMP-rAmplitude')+'µV':''}${v('BCoVEMP-lAmplitude')?', L amp: '+v('BCoVEMP-lAmplitude')+'µV':''}${v('BCoVEMP-rN1latency')?', R N1: '+v('BCoVEMP-rN1latency')+'ms':''}${v('BCoVEMP-lN1latency')?', L N1: '+v('BCoVEMP-lN1latency')+'ms':''}
+BC oVEMP: ${v('BCoVEMP-status')||'—'}, AR: ${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'% (N<40%)':'not calculated'}${v('BCoVEMP-rAmplitude')?', R amp: '+v('BCoVEMP-rAmplitude')+'µV':''}${v('BCoVEMP-lAmplitude')?', L amp: '+v('BCoVEMP-lAmplitude')+'µV':''}${v('BCoVEMP-rN1latency')?', R N1: '+v('BCoVEMP-rN1latency')+'ms':''}${v('BCoVEMP-lN1latency')?', L N1: '+v('BCoVEMP-lN1latency')+'ms':''}
 ${acOvempLine}
 oVEMP comment: ${v('oVEMPcomment')||'none'}` : 'NOT PERFORMED — omit VEMPs section entirely'}`;
 }
