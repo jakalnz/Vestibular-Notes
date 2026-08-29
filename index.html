@@ -816,7 +816,7 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 
     <!-- NOTES PANEL -->
     <div id="out-notes" class="out-panel active">
-      <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
+      <button class="print-btn" onclick="printNotes()">🖨 Print / Save as PDF</button>
       <div id="notesPreview" class="notes-page">
         <div class="empty-hint">Fill in patient details to see the clinical notes preview.</div>
       </div>
@@ -984,6 +984,16 @@ function badge(status){
   return`<span class="status-badge ${cls}">${esc(status)}</span>`;
 }
 function fmtDate(d){if(!d)return'';try{return new Date(d+'T00:00:00').toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});}catch{return d;}}
+
+// ── PRINT / SAVE AS PDF ──
+function printNotes(){
+  const fn=v('fname'),ln=v('lname');
+  const patientName=[fn,ln].filter(Boolean).join(' ').trim();
+  const originalTitle=document.title;
+  document.title=patientName?`v_note - ${patientName}`:'v_note';
+  window.print();
+  setTimeout(()=>{document.title=originalTitle;},0);
+}
 
 // ── NOTES PREVIEW ──
 function updatePreview(){
@@ -1192,7 +1202,7 @@ REPORT STRUCTURE:
 1. Header block (date, referrer, Re: line with patient name / DOB / NHI)
 2. Blank line, then "Tēnā koe"
 3. "Thank you for referring [first name] for vestibular assessment" + referral reason if provided
-4. "Clinical History" section — brief, bullet-pointed summary from Heidi Subjective (max 10 lines)
+4. "Clinical History" section — brief paragraph summary from Heidi Subjective (max 10 lines)
 5. "Summary and Clinical Impression" — 1-2 sentences of overall impression, then "Key findings:" as bullet points (•), then "Recommendations:" as prose paragraph(s)
 6. "Detailed Assessment Findings" heading
 7. Sub-sections in this order (omit any section where all data is absent or DNT/CNT):
@@ -1208,7 +1218,7 @@ REPORT STRUCTURE:
 
 SECTION-SPECIFIC INSTRUCTIONS:
 
-Clinical History: Third person, patient's pronoun. Keep brief — 10 lines maximum. Use bullet points (•), one point per key fact: onset/duration, symptom description, triggers, functional impact, relevant negatives (e.g. no headache, no hearing change). Avoid long or complex sentences — short, direct statements only. Do not pad with narrative detail that isn't clinically relevant.
+Clinical History: Third person, patient's pronoun. Keep extremely brief — 10 lines maximum. Write as short, plain sentences grouped into 2-3 small paragraphs by theme (e.g. one paragraph for onset/duration/symptom description/triggers, one for functional impact, one for relevant negatives such as no headache, no hearing change). No bullet points. Each sentence should be short and direct — no compound or complex sentences. Do not pad with narrative detail that isn't clinically relevant.
 
 Summary and Clinical Impression: 1-2 sentences of overall impression integrating the key pattern across all findings. Then "Key findings:" as bullet points (•) — when findings are entirely normal, use concise summary bullets rather than listing every test result. The standard normal summary bullets are:
   • Normal peripheral vestibular function.
