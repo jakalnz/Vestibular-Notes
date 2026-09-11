@@ -150,6 +150,11 @@ export default {
       try {
         const body = await request.json();
 
+        if (!body.patientUrl) {
+          return new Response(JSON.stringify({ error: 'patientUrl is required' }), {
+            status: 400, headers: { ...CORS, 'Content-Type': 'application/json' }
+          });
+        }
         const patientId = body.patientUrl.split('/').pop();
         const bookingId = body.bookingUrl ? body.bookingUrl.split('/').pop() : null;
         const attendeeId = body.attendeeUrl ? body.attendeeUrl.split('/').pop() : null;
@@ -231,7 +236,7 @@ export default {
         // Fetch each unique patient by ID using searchPatients
         const uniquePatientIds = [...new Set(appointments.map(a => a.patientID).filter(Boolean))];
         const patientResults = await Promise.all(
-          uniquePatientIds.map(id => nookalPost('searchPatients', { patient_id: id }, env))
+          uniquePatientIds.map(id => nookalPost('searchPatients', { patientID: id }, env))
         );
 
         const patientMap = {};
@@ -325,8 +330,8 @@ export default {
 
         const req = await request.json().catch(() => ({}));
 
-        if (!req.patient_id || !req.html || !req.practitioner_id || !req.case_id) {
-          return respondJson({ error: 'patient_id, practitioner_id, case_id and html are required' }, 400);
+        if (!req.patient_id || !req.html || !req.practitioner_id) {
+          return respondJson({ error: 'patient_id, practitioner_id and html are required' }, 400);
         }
 
         const today = new Date().toISOString().split('T')[0];
@@ -334,11 +339,11 @@ export default {
           api_key: env.NOOKAL_API_KEY,
           patient_id: String(req.patient_id),
           practitioner_id: String(req.practitioner_id),
-          case_id: String(req.case_id),
           date: req.date || today,
           html: req.html,
           notes: req.html
         });
+        if (req.case_id) body.set('case_id', String(req.case_id));
 
         const nookalResp = await fetch('https://api.nookal.com/production/v2/addTreatmentNote', {
           method: 'POST',

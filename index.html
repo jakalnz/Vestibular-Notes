@@ -1970,10 +1970,6 @@ async function pushToNookal(){
     alert('Please select a practitioner before pushing to Nookal.');
     return;
   }
-  if(!caseId){
-    alert('Please select a case before pushing to Nookal.');
-    return;
-  }
 
   const btn = document.getElementById('nookalPushBtn');
   btn.textContent = 'Pushing…'; btn.disabled = true;
