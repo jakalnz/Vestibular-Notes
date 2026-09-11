@@ -1,5 +1,5 @@
 // Vestibular Assessment — API Proxy
-// Secrets required: ANTHROPIC_API_KEY, CLINIKO_API_KEY, NOOKAL_API_KEY
+// Secrets required: ANTHROPIC_API_KEY, CLINIKO_API_KEY, NOOKAL_API_KEY, APP_SECRET
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -77,6 +77,19 @@ function normalizePatientResponse(data, requestedId) {
   return { patient };
 }
 
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function isAuthorized(request, env) {
+  if (!env?.APP_SECRET) return false;
+  const provided = request.headers.get('X-App-Secret') || '';
+  return timingSafeEqual(provided, env.APP_SECRET);
+}
+
 function normalizeCasesResponse(data) {
   if (Array.isArray(data?.cases)) return data;
   if (Array.isArray(data?.data?.results?.cases)) {
@@ -93,6 +106,10 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS });
+    }
+
+    if (!isAuthorized(request, env)) {
+      return respondJson({ error: 'Unauthorized' }, 401);
     }
 
     const url = new URL(request.url);
@@ -137,6 +154,11 @@ export default {
       try {
         const targetUrl = url.searchParams.get('url');
         if (!targetUrl) return new Response(JSON.stringify({ error: 'no url param' }), { status: 400, headers: CORS });
+        let parsedTarget;
+        try { parsedTarget = new URL(targetUrl); } catch { parsedTarget = null; }
+        if (!parsedTarget || parsedTarget.protocol !== 'https:' || parsedTarget.hostname !== 'api.au4.cliniko.com') {
+          return new Response(JSON.stringify({ error: 'url must be an https://api.au4.cliniko.com/... address' }), { status: 400, headers: CORS });
+        }
         const resp = await fetch(targetUrl, { headers: clinikoHeaders(env.CLINIKO_API_KEY) });
         const text = await resp.text();
         return new Response(text, { status: resp.status, headers: { ...CORS, 'Content-Type': 'application/json' } });

@@ -913,6 +913,21 @@ input.chk-sac{width:auto!important;margin-right:4px;}
 </form>
 
 <script>
+// ── PROXY AUTH ──
+// Shared secret for the worker's proxied endpoints; entered once, kept only in this browser's localStorage.
+function getAppSecret(){
+  let secret = localStorage.getItem('appSecret');
+  if(!secret){
+    secret = prompt('Enter clinic app access code:') || '';
+    if(secret) localStorage.setItem('appSecret', secret);
+  }
+  return secret;
+}
+function pfetch(url, opts={}){
+  const headers = { ...(opts.headers||{}), 'X-App-Secret': getAppSecret() };
+  return fetch(url, { ...opts, headers });
+}
+
 // ── TAB SWITCHING ──
 function openTab(e,id){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -1366,7 +1381,7 @@ async function generateReport(){
   document.getElementById('copyRow').style.display='none';
 
   try{
-    const res=await fetch(PROXY_URL,{
+    const res=await pfetch(PROXY_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
@@ -1464,7 +1479,7 @@ async function loadClinikoAppointments() {
   status.textContent = '';
 
   try {
-    const resp = await fetch(`${PROXY}/cliniko/appointments`);
+    const resp = await pfetch(`${PROXY}/cliniko/appointments`);
     if (!resp.ok) throw new Error(`Cliniko error ${resp.status}`);
     const data = await resp.json();
     const appts = data.appointments || [];
@@ -1485,7 +1500,7 @@ async function loadClinikoAppointments() {
         || appt.patient_id;
       if (!patientId) return null;
       try {
-        const pr = await fetch(`${PROXY}/cliniko/patients/${patientId}`);
+        const pr = await pfetch(`${PROXY}/cliniko/patients/${patientId}`);
         const pd = await pr.json();
         return { appt, patient: pd };
       } catch { return null; }
@@ -1550,7 +1565,7 @@ async function selectClinikoPatient() {
   const attendeesUrl = appt.attendees?.links?.self;
   if (attendeesUrl) {
     try {
-      const attResp = await fetch(`${PROXY}/cliniko/attendees?url=${encodeURIComponent(attendeesUrl)}`);
+      const attResp = await pfetch(`${PROXY}/cliniko/attendees?url=${encodeURIComponent(attendeesUrl)}`);
       const attData = await attResp.json();
       const att = attData.attendees?.[0];
       document.getElementById('fname').dataset.clinikoAttendeeUrl = att?.links?.self || '';
@@ -1700,7 +1715,7 @@ async function pushToClinico() {
       reportLetter: (document.getElementById('reportOut')?.textContent?.trim()||'').split('\n').map(l=>`<div>${l||'&nbsp;'}</div>`).join('')
     };
 
-    const resp = await fetch(`${PROXY}/cliniko/treatment_notes`, {
+    const resp = await pfetch(`${PROXY}/cliniko/treatment_notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -1740,7 +1755,7 @@ async function loadNookalPractitioners(){
   if(errBox){ errBox.style.display = 'none'; errBox.textContent = ''; }
 
   try{
-    const resp = await fetch(`${PROXY}/nookal/practitioners`);
+    const resp = await pfetch(`${PROXY}/nookal/practitioners`);
     if(!resp.ok) throw new Error(`Practitioner fetch error ${resp.status}`);
     const data = await resp.json();
     const practs = data?.data?.results?.practitioners || [];
@@ -1802,7 +1817,7 @@ async function loadNookalAppointments(){
   try{
     const params = new URLSearchParams();
     if(practId) params.set('practitioner_id', practId);
-    const resp = await fetch(`${PROXY}/nookal/appointments?${params}`);
+    const resp = await pfetch(`${PROXY}/nookal/appointments?${params}`);
     if(!resp.ok) throw new Error(`Nookal error ${resp.status}`);
     const data = await resp.json();
     const appts = data.appointments || [];
@@ -1873,7 +1888,7 @@ async function searchNookalPatients(){
     const params = new URLSearchParams();
     if(fname) params.set('fname', fname);
     if(lname) params.set('lname', lname);
-    const resp = await fetch(`${PROXY}/nookal/search?${params}`);
+    const resp = await pfetch(`${PROXY}/nookal/search?${params}`);
     if(!resp.ok) throw new Error(`Search error ${resp.status}`);
     const data = await resp.json();
     // Try multiple response paths in case Nookal's search structure differs from getPatients
@@ -1931,7 +1946,7 @@ async function loadNookalCases(patientId){
   sel.innerHTML = '<option value="">— select case —</option>';
   if(!patientId){ row.style.display='none'; return; }
   try{
-    const resp = await fetch(`${PROXY}/nookal/cases?patient_id=${patientId}`);
+    const resp = await pfetch(`${PROXY}/nookal/cases?patient_id=${patientId}`);
     const data = await resp.json();
     const cases = data.cases || [];
     if(cases.length === 0){
@@ -2074,7 +2089,7 @@ async function pushToNookal(){
     if(caseId) payload.case_id = caseId;
     if(practId) payload.practitioner_id = practId;
 
-    const resp = await fetch(`${PROXY}/nookal/treatment_note`, {
+    const resp = await pfetch(`${PROXY}/nookal/treatment_note`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
