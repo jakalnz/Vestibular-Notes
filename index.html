@@ -1012,8 +1012,8 @@ function printNotes(){
 
 // ── NOTES PREVIEW ──
 function updatePreview(){
-  const fn=v('fname'),ln=v('lname'),dob=v('dob'),nhi=v('nhi'),
-    ad=v('assessDate'),ref=v('refName');
+  const fn=esc(v('fname')),ln=esc(v('lname')),dob=v('dob'),nhi=esc(v('nhi')),
+    ad=v('assessDate'),ref=esc(v('refName'));
   const hasData=fn||ln||v('heidiNote');
   if(!hasData){document.getElementById('notesPreview').innerHTML='<div class="empty-hint">Fill in patient details to see the clinical notes preview.</div>';return;}
 
@@ -1042,9 +1042,9 @@ function updatePreview(){
   <div class="np-sec-title">Pre-Assessment</div>
   <table class="np-table">
     <tr><th style="width:110px">Check</th><th>Result</th></tr>
-    ${v('eyeexam')?`<tr><td>Eye exam</td><td>${v('eyeexam')}</td></tr>`:''}
-    ${v('otoscopy')?`<tr><td>Otoscopy</td><td>${v('otoscopy')}</td></tr>`:''}
-    ${v('audiometry')?`<tr><td>Audiometry</td><td>${v('audiometry')}</td></tr>`:''}
+    ${v('eyeexam')?`<tr><td>Eye exam</td><td>${esc(v('eyeexam'))}</td></tr>`:''}
+    ${v('otoscopy')?`<tr><td>Otoscopy</td><td>${esc(v('otoscopy'))}</td></tr>`:''}
+    ${v('audiometry')?`<tr><td>Audiometry</td><td>${esc(v('audiometry'))}</td></tr>`:''}
     <tr><td>Tympanometry</td><td>
       R: Type ${v('rTympType')||'—'} ${v('rTympMEP')?'MEP '+v('rTympMEP')+'daPa':''} ${v('rTympAdm')?'/ '+v('rTympAdm')+'mho':''} &nbsp;|&nbsp;
       L: Type ${v('lTympType')||'—'} ${v('lTympMEP')?'MEP '+v('lTympMEP')+'daPa':''} ${v('lTympAdm')?'/ '+v('lTympAdm')+'mho':''}
@@ -1119,7 +1119,7 @@ function updatePreview(){
     <tr><td>Anterior</td><td>${badge(rAnt)}</td><td>${vhitGain('rAntVhit-gain')||'—'}</td><td>${sacStr('rAnt')}</td><td>${badge(lAnt)}</td><td>${vhitGain('lAntVhit-gain')||'—'}</td><td>${sacStr('lAnt')}</td></tr>
     <tr><td>Posterior</td><td>${badge(rPost)}</td><td>${vhitGain('rPostVhit-gain')||'—'}</td><td>${sacStr('rPost')}</td><td>${badge(lPost)}</td><td>${vhitGain('lPostVhit-gain')||'—'}</td><td>${sacStr('lPost')}</td></tr>
   </table>
-  ${v('vhitComment')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">vHIT comment:</span> ${v('vhitComment')}</div>`:''}
+  ${v('vhitComment')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">vHIT comment:</span> ${esc(v('vhitComment'))}</div>`:''}
 </div>
   <div class="np-section">
     <div class="np-sec-title">cVEMP</div>
@@ -1128,7 +1128,7 @@ function updatePreview(){
       <tr><td>AC</td><td>${badge(v('ACcVEMP-status'))}</td><td>${v('ACcVEMP-NAR')?v('ACcVEMP-NAR')+'%':'—'}</td><td>${v('ACcVEMP-rP1latency')||'—'}</td><td>${v('ACcVEMP-lP1latency')||'—'}</td></tr>
       <tr><td>BC</td><td>${badge(v('BCcVEMP-status'))}</td><td>${v('BCcVEMP-NAR')?v('BCcVEMP-NAR')+'%':'—'}</td><td>${v('BCcVEMP-rP1latency')||'—'}</td><td>${v('BCcVEMP-lP1latency')||'—'}</td></tr>
     </table>
-    ${v('cVEMPcomment')?`<div class="np-notes" style="margin-top:4px">${v('cVEMPcomment')}</div>`:''}
+    ${v('cVEMPcomment')?`<div class="np-notes" style="margin-top:4px">${esc(v('cVEMPcomment'))}</div>`:''}
   </div>
   <div class="np-section">
     <div class="np-sec-title">oVEMP</div>
@@ -1137,7 +1137,7 @@ function updatePreview(){
       <tr><td>BC</td><td>${badge(v('BCoVEMP-status'))}</td><td>${v('BCoVEMP-AR')?v('BCoVEMP-AR')+'%':'—'}</td><td>${v('BCoVEMP-rAmplitude')||'—'}</td><td>${v('BCoVEMP-lAmplitude')||'—'}</td><td>${v('BCoVEMP-rN1latency')||'—'}</td><td>${v('BCoVEMP-lN1latency')||'—'}</td></tr>
       <tr><td>AC</td><td>${badge(v('ACoVEMP-status'))}</td><td>${v('ACoVEMP-AR')?v('ACoVEMP-AR')+'%':'—'}</td><td>${v('ACoVEMP-rAmplitude')||'—'}</td><td>${v('ACoVEMP-lAmplitude')||'—'}</td><td>—</td><td>—</td></tr>
     </table>
-    ${v('oVEMPcomment')?`<div class="np-notes" style="margin-top:4px">${v('oVEMPcomment')}</div>`:''}
+    ${v('oVEMPcomment')?`<div class="np-notes" style="margin-top:4px">${esc(v('oVEMPcomment'))}</div>`:''}
   </div>
 </div>
 
@@ -1145,11 +1145,11 @@ function updatePreview(){
   <div class="np-sec-title">Positional Testing</div>
   <table class="np-table">
     <tr><th>Test</th><th>Result</th><th>Comment</th></tr>
-    <tr><td>R Dix-Hallpike</td><td>${badge(v('rDHP-result'))}</td><td>${v('rDHP-comment')||'—'}</td></tr>
-    <tr><td>L Dix-Hallpike</td><td>${badge(v('lDHP-result'))}</td><td>${v('lDHP-comment')||'—'}</td></tr>
-    <tr><td>R Roll</td><td>${badge(v('rRoll-result'))}</td><td>${v('rRoll-comment')||'—'}</td></tr>
-    <tr><td>L Roll</td><td>${badge(v('lRoll-result'))}</td><td>${v('lRoll-comment')||'—'}</td></tr>
-    <tr><td>Bow &amp; Lean</td><td>${badge(v('bow-lean-result'))}</td><td>${v('bow-lean-comment')||'—'}</td></tr>
+    <tr><td>R Dix-Hallpike</td><td>${badge(v('rDHP-result'))}</td><td>${esc(v('rDHP-comment'))||'—'}</td></tr>
+    <tr><td>L Dix-Hallpike</td><td>${badge(v('lDHP-result'))}</td><td>${esc(v('lDHP-comment'))||'—'}</td></tr>
+    <tr><td>R Roll</td><td>${badge(v('rRoll-result'))}</td><td>${esc(v('rRoll-comment'))||'—'}</td></tr>
+    <tr><td>L Roll</td><td>${badge(v('lRoll-result'))}</td><td>${esc(v('lRoll-comment'))||'—'}</td></tr>
+    <tr><td>Bow &amp; Lean</td><td>${badge(v('bow-lean-result'))}</td><td>${esc(v('bow-lean-comment'))||'—'}</td></tr>
   </table>
 </div>
 
@@ -1160,29 +1160,29 @@ function updatePreview(){
     <tr><td>Bithermal</td><td>${badge(v('Caloric-status'))}</td><td>${caloricUW?caloricUW+'%':'—'}</td><td>&lt;25%</td></tr>
     <tr><td>Monothermal warm</td><td>${badge(v('Caloric-monoStatus'))}</td><td>${caloricMono?caloricMono+'%':'—'}</td><td>&lt;15%</td></tr>
   </table>
-  ${v('caloric-comment')?`<div class="np-notes" style="margin-top:6px">${v('caloric-comment')}</div>`:''}
-  ${v('30degSpont')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">30° spontaneous nystagmus:</span> ${v('30degSpont')}</div>`:''}
+  ${v('caloric-comment')?`<div class="np-notes" style="margin-top:6px">${esc(v('caloric-comment'))}</div>`:''}
+  ${v('30degSpont')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">30° spontaneous nystagmus:</span> ${esc(v('30degSpont'))}</div>`:''}
 </div>
 
 <div class="np-section">
-  <div class="np-sec-title">Oculomotor (VNG)${v('VNG-mode')?` <span style="font-weight:normal;font-size:9px;color:var(--text-muted);text-transform:none;letter-spacing:0;">— ${v('VNG-mode')} recording</span>`:''}</div>
+  <div class="np-sec-title">Oculomotor (VNG)${v('VNG-mode')?` <span style="font-weight:normal;font-size:9px;color:var(--text-muted);text-transform:none;letter-spacing:0;">— ${esc(v('VNG-mode'))} recording</span>`:''}</div>
   <table class="np-table">
     <tr><th>Test</th><th>GE / Result</th><th>Vision Denied</th></tr>
-    <tr><td>Saccades</td><td colspan="2">${v('saccade-comment')||'—'}</td></tr>
-    <tr><td>Gaze Centre</td><td>${v('Gaze_C-GE')||'—'}</td><td>${v('Gaze_C-S')||'—'}</td></tr>
-    <tr><td>Gaze Right</td><td>${v('Gaze_R-GE')||'—'}</td><td>${v('Gaze_R-S')||'—'}</td></tr>
-    <tr><td>Gaze Left</td><td>${v('Gaze_L-GE')||'—'}</td><td>${v('Gaze_L-S')||'—'}</td></tr>
-    <tr><td>OKN</td><td colspan="2">${v('OKN')||'—'}</td></tr>
-    <tr><td>Smooth pursuit</td><td colspan="2">${v('Tracking')||'—'}</td></tr>
-    <tr><td>SVIN</td><td colspan="2">${v('svinResult')||'—'}</td></tr>
+    <tr><td>Saccades</td><td colspan="2">${esc(v('saccade-comment'))||'—'}</td></tr>
+    <tr><td>Gaze Centre</td><td>${esc(v('Gaze_C-GE'))||'—'}</td><td>${esc(v('Gaze_C-S'))||'—'}</td></tr>
+    <tr><td>Gaze Right</td><td>${esc(v('Gaze_R-GE'))||'—'}</td><td>${esc(v('Gaze_R-S'))||'—'}</td></tr>
+    <tr><td>Gaze Left</td><td>${esc(v('Gaze_L-GE'))||'—'}</td><td>${esc(v('Gaze_L-S'))||'—'}</td></tr>
+    <tr><td>OKN</td><td colspan="2">${esc(v('OKN'))||'—'}</td></tr>
+    <tr><td>Smooth pursuit</td><td colspan="2">${esc(v('Tracking'))||'—'}</td></tr>
+    <tr><td>SVIN</td><td colspan="2">${esc(v('svinResult'))||'—'}</td></tr>
   </table>
-  ${v('otherTests')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">Other tests:</span><br>${v('otherTests')}</div>`:''}
-  ${v('vngComment')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">VNG comment:</span><br>${v('vngComment')}</div>`:''}
+  ${v('otherTests')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">Other tests:</span><br>${esc(v('otherTests'))}</div>`:''}
+  ${v('vngComment')?`<div class="np-notes" style="margin-top:4px"><span style="font-size:9px;font-weight:bold;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.8px;">VNG comment:</span><br>${esc(v('vngComment'))}</div>`:''}
 </div>
 
-${v('sessionNotes')?`<div class="np-section"><div class="np-sec-title">Session Notes</div><div class="np-notes">${v('sessionNotes')}</div></div>`:''}
-${v('refReason')?`<div class="np-section"><div class="np-sec-title">Referral Reason</div><div class="np-notes">${v('refReason')}</div></div>`:''}
-${v('heidiNote')?`<div class="np-section"><div class="np-sec-title">Heidi SOAP Note</div><div class="np-notes" style="font-size:10px;">${v('heidiNote').replace(/\n/g,'<br>')}</div></div>`:''}
+${v('sessionNotes')?`<div class="np-section"><div class="np-sec-title">Session Notes</div><div class="np-notes">${esc(v('sessionNotes'))}</div></div>`:''}
+${v('refReason')?`<div class="np-section"><div class="np-sec-title">Referral Reason</div><div class="np-notes">${esc(v('refReason'))}</div></div>`:''}
+${v('heidiNote')?`<div class="np-section"><div class="np-sec-title">Heidi SOAP Note</div><div class="np-notes" style="font-size:10px;">${esc(v('heidiNote')).replace(/\n/g,'<br>')}</div></div>`:''}
 `;
 }
 
@@ -2123,8 +2123,8 @@ async function pushToNookal(){
 
 // Populate practitioner list once on load
 loadNookalPractitioners();
-// Set today's date
-document.getElementById('assessDate').value=new Date().toISOString().split('T')[0];
+// Set today's date (local date, not UTC — avoids landing on the wrong day around NZ midnight)
+document.getElementById('assessDate').value=new Date().toLocaleDateString('en-CA');
 
 // ── PASSWORD GATE ──
 (function(){

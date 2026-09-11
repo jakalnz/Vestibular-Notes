@@ -1,14 +1,37 @@
 // Vestibular Assessment — API Proxy
 // Secrets required: ANTHROPIC_API_KEY, CLINIKO_API_KEY, NOOKAL_API_KEY, APP_SECRET
 
+const ALLOWED_ORIGIN = 'https://jakalnz.github.io';
+
 const CORS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, X-App-Secret',
+  'Vary': 'Origin',
 };
 
 function toBase64(str) {
   return btoa(str);
+}
+
+// Worker runtime is always UTC; the clinic is in Auckland, so compute "today" in NZ local time.
+function nzDateStr(date = new Date()) {
+  return date.toLocaleDateString('en-CA', { timeZone: 'Pacific/Auckland' });
+}
+
+// UTC instants for the start/end of the current NZ calendar day (handles NZST/NZDT).
+function nzDayBoundsUtc(date = new Date()) {
+  const dateStr = nzDateStr(date);
+  const offsetName = new Intl.DateTimeFormat('en-US', { timeZone: 'Pacific/Auckland', timeZoneName: 'shortOffset' })
+    .formatToParts(date).find(p => p.type === 'timeZoneName')?.value || 'GMT+12';
+  const offsetHours = parseInt(offsetName.replace('GMT', ''), 10) || 12;
+  const sign = offsetHours >= 0 ? '+' : '-';
+  const offsetStr = `${sign}${String(Math.abs(offsetHours)).padStart(2, '0')}:00`;
+  return {
+    dateStr,
+    startUtc: new Date(`${dateStr}T00:00:00${offsetStr}`),
+    endUtc: new Date(`${dateStr}T23:59:59${offsetStr}`)
+  };
 }
 
 function clinikoHeaders(apiKey) {
@@ -117,8 +140,8 @@ export default {
     // ── CLINIKO: today's appointments ──
     if (url.pathname === '/cliniko/appointments') {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const clinikoUrl = `https://api.au4.cliniko.com/v1/practitioners/1750479486207403869/appointments?q=starts_at:>=${today}T00:00:00Z,starts_at:<=${today}T23:59:59Z&per_page=50&sort=starts_at`;
+        const { startUtc, endUtc } = nzDayBoundsUtc();
+        const clinikoUrl = `https://api.au4.cliniko.com/v1/practitioners/1750479486207403869/appointments?q=starts_at:>=${startUtc.toISOString()},starts_at:<=${endUtc.toISOString()}&per_page=50&sort=starts_at`;
         const resp = await fetch(clinikoUrl, { headers: clinikoHeaders(env.CLINIKO_API_KEY) });
         const text = await resp.text();
         return new Response(text, {
@@ -156,8 +179,9 @@ export default {
         if (!targetUrl) return new Response(JSON.stringify({ error: 'no url param' }), { status: 400, headers: CORS });
         let parsedTarget;
         try { parsedTarget = new URL(targetUrl); } catch { parsedTarget = null; }
-        if (!parsedTarget || parsedTarget.protocol !== 'https:' || parsedTarget.hostname !== 'api.au4.cliniko.com') {
-          return new Response(JSON.stringify({ error: 'url must be an https://api.au4.cliniko.com/... address' }), { status: 400, headers: CORS });
+        const isAttendeesPath = /^\/v1\/[a-z_]+\/\d+\/attendees$/.test(parsedTarget?.pathname || '');
+        if (!parsedTarget || parsedTarget.protocol !== 'https:' || parsedTarget.hostname !== 'api.au4.cliniko.com' || !isAttendeesPath) {
+          return new Response(JSON.stringify({ error: 'url must be an https://api.au4.cliniko.com/v1/.../attendees address' }), { status: 400, headers: CORS });
         }
         const resp = await fetch(targetUrl, { headers: clinikoHeaders(env.CLINIKO_API_KEY) });
         const text = await resp.text();
@@ -177,6 +201,10 @@ export default {
             status: 400, headers: { ...CORS, 'Content-Type': 'application/json' }
           });
         }
+        function escapeHtml(s) {
+          return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
         const patientId = body.patientUrl.split('/').pop();
         const bookingId = body.bookingUrl ? body.bookingUrl.split('/').pop() : null;
         const attendeeId = body.attendeeUrl ? body.attendeeUrl.split('/').pop() : null;
@@ -197,15 +225,15 @@ export default {
             sections: [
               {
                 name: 'Clinical',
-                questions: [{ name: 'History & Referral', type: 'paragraph', answer: `<p>${(body.historyReferral || '').replace(/\n/g, '</p><p>')}</p>` }]
+                questions: [{ name: 'History & Referral', type: 'paragraph', answer: `<p>${escapeHtml(body.historyReferral).replace(/\n/g, '</p><p>')}</p>` }]
               },
               {
                 name: 'Findings',
-                questions: [{ name: 'Test Results', type: 'paragraph', answer: `<p>${(body.testResults || '').replace(/\n/g, '</p><p>')}</p>` }]
+                questions: [{ name: 'Test Results', type: 'paragraph', answer: `<p>${escapeHtml(body.testResults).replace(/\n/g, '</p><p>')}</p>` }]
               },
               {
                 name: 'Report',
-                questions: [{ name: 'Report Letter', type: 'paragraph', answer: `<p>${(body.reportLetter || '').replace(/\n/g, '</p><p>')}</p>` }]
+                questions: [{ name: 'Report Letter', type: 'paragraph', answer: `<p>${escapeHtml(body.reportLetter).replace(/\n/g, '</p><p>')}</p>` }]
               }
             ]
           }
@@ -244,8 +272,8 @@ export default {
       try {
         const practitionerId = url.searchParams.get('practitioner_id');
         const today = new Date();
-        const fromDate = today.toISOString().split('T')[0];
-        const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const fromDate = nzDateStr(today);
+        const toDate = nzDateStr(new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000));
 
         const apptResult = await nookalPost('getAppointments', {
           practitioner_id: practitionerId,
@@ -356,7 +384,7 @@ export default {
           return respondJson({ error: 'patient_id, practitioner_id and html are required' }, 400);
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = nzDateStr();
         const body = new URLSearchParams({
           api_key: env.NOOKAL_API_KEY,
           patient_id: String(req.patient_id),
