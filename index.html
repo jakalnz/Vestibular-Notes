@@ -2010,7 +2010,17 @@ async function pushToNookal(){
   btn.textContent = 'Pushing…'; btn.disabled = true;
 
   try{
-    function val(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+    function asciiSafe(s){
+      return String(s)
+        .normalize('NFD').replace(/[̀-ͯ]/g,'') // strip macrons/diacritics (ā→a, ē→e, etc.)
+        .replace(/[•·]/g,'-')
+        .replace(/[–—]/g,'-')
+        .replace(/[°]/g,'deg')
+        .replace(/[’‘]/g,"'")
+        .replace(/[“”]/g,'"')
+        .replace(/…/g,'...');
+    }
+    function val(id){ const el=document.getElementById(id); return el?asciiSafe(el.value.trim()):''; }
     function has(...ids){ return ids.some(id=>val(id)); }
     function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function secBlock(title, rows){
@@ -2089,7 +2099,7 @@ async function pushToNookal(){
     if(val('caloric-comment')) caloricRows.push(['Comment', esc(val('caloric-comment'))]);
     sections.push(secBlock('Caloric Testing', caloricRows));
 
-    const reportText = document.getElementById('reportOut')?.textContent?.trim() || '';
+    const reportText = asciiSafe(document.getElementById('reportOut')?.textContent?.trim() || '');
     if(reportText && reportText.length > 50){
       const reportHtml = esc(reportText)
         .split('\n')
